@@ -4,71 +4,38 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class MenuController extends Controller
 {
-
-    //树形菜单列表
-    public function tree(){
-
-
-
-    }
-
     //菜单列表
     public function index(Request $request)
     {
-        $type = $request->input('type');
-        if($type == 1){
-            $list = [
-                [
-                    'id'=>1,
-                    'icon'=>'list',
-                    'name'=>'系统管理',
-                    'code'=>'system',
-                    'url'=>'',
-                    'm_type'=>0,
-                    'c_type'=>0,
-                    'status'=>1,
-                    'sort'=>1
-                ]
-
-            ];
+        $pid = $request->input('pid');
+        $data = DB::table('menus')->where('status',0)->get();
+        if($pid > 0){
+            $list = DB::table('menus')->where([['status','=',0],['id','=',$pid]])->orWhere([['status','=',0],['parent_id','=',$pid]])->get();
         }else{
-            $list = [
-                [
-                    'id'=>1,
-                    'icon'=>'list',
-                    'name'=>'系统管理',
-                    'code'=>'system',
-                    'url'=>'',
-                    'm_type'=>0,
-                    'c_type'=>0,
-                    'status'=>1,
-                    'sort'=>1,
-                    'parent_id'=>0
-                ],
-                [
-                    'id'=>2,
-                    'icon'=>'tree-table',
-                    'name'=>'机构组织',
-                    'code'=>'dept',
-                    'url'=>'/system/dept',
-                    'm_type'=>1,
-                    'c_type'=>0,
-                    'status'=>1,
-                    'sort'=>2
-                ]
-
-            ];
+            $list = $data;
         }
-
-        return ['total'=>2,'items'=>$list];
+        //菜单树处理
+        $tree = [];
+        foreach($data as $k=>$v){
+            $item = [];
+            $item['id'] = $v->id;
+            $item['pId'] = $v->parent_id;
+            $item['name'] = $v->menu_name;
+            $tree[] = $item;
+        }
+        return ['total'=>count($data),'items'=>$list,'tree'=>$tree];
     }
 
     //添加菜单
     public function create(Request $request)
     {
+        $data =  $request->all();
+        $id = DB::table('menus')->insertGetId($data);
+        return ['id'=>$id];
 
     }
 

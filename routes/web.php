@@ -27,7 +27,8 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 
 Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
-    Route::any('admin/user', 'AdminController@user')->name('admin.user');
+    Route::any('admin/user', 'AdminController@user');
+    Route::any('admin/menu', 'AdminController@menu');
     Route::get('menu/index', 'Admin\MenuController@index');
     Route::get('menu/detail', 'Admin\MenuController@detail');
     Route::post('menu/create', 'Admin\MenuController@create');

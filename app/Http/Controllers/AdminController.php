@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class AdminController extends Controller
 {
@@ -27,68 +29,23 @@ class AdminController extends Controller
 
     public function menu()
     {
-        $menu = [[
-            'path'=>'/',
-            'component'=>'layout',
-            'meta'=>['title'=>'系统','icon'=>'excel'],
-            'children'=>[
-                ['path'=>'binge/list','component'=>'list.a','meta'=>['title'=>'菜单管理']],
-                ['path'=>'binge/group','component'=>'group','meta'=>['title'=>'用户组']]
-            ]
-        ]];
-        return $menu;
-
-    }
-
-
-    public function mList(Request $request)
-    {
-        $type = $request->input('type');
-        if($type == 1){
-            $list = [
-                [
-                    'id'=>1,
-                    'icon'=>'list',
-                    'name'=>'系统管理',
-                    'code'=>'system',
-                    'url'=>'',
-                    'm_type'=>0,
-                    'c_type'=>0,
-                    'status'=>1,
-                    'sort'=>1
-                ]
-
-            ];
-        }else{
-            $list = [
-                [
-                    'id'=>1,
-                    'icon'=>'list',
-                    'name'=>'系统管理',
-                    'code'=>'system',
-                    'url'=>'',
-                    'm_type'=>0,
-                    'c_type'=>0,
-                    'status'=>1,
-                    'sort'=>1,
-                    'parent_id'=>0
-                ],
-                [
-                    'id'=>2,
-                    'icon'=>'tree-table',
-                    'name'=>'机构组织',
-                    'code'=>'dept',
-                    'url'=>'/system/dept',
-                    'm_type'=>1,
-                    'c_type'=>0,
-                    'status'=>1,
-                    'sort'=>2
-                ]
-
-            ];
+        $data = DB::table('menus')->where([['status','=',0],['menu_type','<',3]])->get();
+        $menu = [];
+        foreach($data as $k=>$v){
+            $item = [];
+            if($v->parent_id == 0){
+                $item['path'] = $v->uri;
+                $item['component'] = 'layout';
+                $item['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
+                $menu[$v->id] = $item;
+            }else{
+                $son = [];
+                $son['path'] = $v->uri;
+                $son['component'] = $v->permission_name;
+                $son['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
+                $menu[$v->parent_id]['children'][] = $son;
+            }
         }
-
-        return ['total'=>2,'items'=>$list];
-
+        return array_values($menu);
     }
 }
