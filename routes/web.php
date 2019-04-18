@@ -25,7 +25,7 @@ Route::any('admin/user', 'AdminController@user')->name('admin.user');
 Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
-
+Route::any('admin/getToken', 'AdminController@getToken');
 Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
     Route::any('admin/user', 'AdminController@user');
     Route::any('admin/menu', 'AdminController@menu');
@@ -33,7 +33,7 @@ Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
     Route::get('menu/detail', 'Admin\MenuController@detail');
     Route::post('menu/create', 'Admin\MenuController@create');
     Route::post('menu/update', 'Admin\MenuController@update');
-    Route::post('menu/delete', 'Admin\MenuController@delete');
+    Route::get('menu/delete', 'Admin\MenuController@delete');
 
 });
 

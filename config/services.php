@@ -35,4 +35,10 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'admins' => [
+        'appid' => env('CLIENT_ID'),
+        'secret' => env('CLIENT_SECRET'),
+        'callback' => ''
+    ]
+
 ];

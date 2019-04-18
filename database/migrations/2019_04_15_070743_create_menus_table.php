@@ -22,9 +22,7 @@ class CreateMenusTable extends Migration
             $table->string('menu_name',191)->comment('菜单名称');
             $table->string('permission_name',50)->unique()->comment('权限名');
             $table->smallInteger('menu_type')->comment('菜单类型 1:父级菜单 2:子菜单 3:功能节点');
-            $table->tinyInteger('is_show')->default(0)->comment('是否启用 0：否 1：是');
-            $table->tinyInteger('is_open')->default(1)->comment('是否展开 0：否 1：是');
-            $table->tinyInteger('status')->default(0)->comment('菜单状态  0:正常 1:删除');
+            $table->tinyInteger('status')->default(1)->comment('菜单状态  0：停用 1：启用');
             $table->integer('sort')->comment('排序');
             $table->timestamps();
         });
