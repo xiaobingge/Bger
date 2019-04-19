@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
-
-class MenuController extends Controller
+class MenuController extends AdminController
 {
     //菜单列表
     public function index(Request $request)
@@ -51,16 +50,16 @@ class MenuController extends Controller
         $data =  $request->all();
         if(is_null($data['icon']))
             $data['icon'] = '';
+        $data['guard_name'] = $this->guard_name;
         $menu_1 = DB::table('menus')->where(['uri'=>$data['uri']])->first();
         if($menu_1)
             return ['code'=>1001,'msg'=>'路由地址已存在'];
-        if($data['parent_id'] > 0){   //子菜单和功能节点创建权限点
-            $permission = DB::table('permissions')->where(['name' => $data['permission_name'], 'guard_name' => $data['guard_name']])->first();
-            if($permission){
-                return ['code'=>1001,'msg'=>'权限标识已存在'];
-            }
-            Permission::create(['name'=>$data['permission_name'],'guard_name'=>$data['guard_name']]);
+         //创建权限点
+        $permission = DB::table('permissions')->where(['name' => $data['permission_name'], 'guard_name' => $data['guard_name']])->first();
+        if($permission){
+            return ['code'=>1001,'msg'=>'权限标识已存在'];
         }
+        Permission::create(['name'=>$data['permission_name'],'guard_name'=>$data['guard_name']]);
         $id = DB::table('menus')->insertGetId($data);
         return ['code'=>1000,'msg'=>'success','data'=>['id'=>$id]];
     }
@@ -70,6 +69,8 @@ class MenuController extends Controller
         $data = $request->all();
         if(is_null($data['icon']))
             $data['icon'] = '';
+        $app = app();
+        $data['guard_name'] = $app['auth']->getDefaultDriver();
         $id = $data['id'];
         unset($data['id']);
         $menu = DB::table('menus')->where(['id'=>$id])->first();

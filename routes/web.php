@@ -25,15 +25,28 @@ Route::any('admin/user', 'AdminController@user')->name('admin.user');
 Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
+
+//后台管理系统路由
 Route::any('admin/getToken', 'AdminController@getToken');
 Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
-    Route::any('admin/user', 'AdminController@user');
-    Route::any('admin/menu', 'AdminController@menu');
+
+    Route::any('admin/user', 'Admin\UserController@user');
+    Route::any('admin/menu', 'Admin\UserController@menu');
+
     Route::get('menu/index', 'Admin\MenuController@index');
     Route::get('menu/detail', 'Admin\MenuController@detail');
     Route::post('menu/create', 'Admin\MenuController@create');
     Route::post('menu/update', 'Admin\MenuController@update');
     Route::get('menu/delete', 'Admin\MenuController@delete');
+
+    Route::get('role/index', 'Admin\RoleController@index');
+    Route::post('role/create', 'Admin\RoleController@create');
+    Route::post('role/update', 'Admin\RoleController@update');
+    Route::get('role/delete', 'Admin\RoleController@delete');
+
+    Route::get('user/index', 'Admin\UserController@index');
+
+
 
 });
 
