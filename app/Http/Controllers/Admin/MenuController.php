@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
-class MenuController extends AdminController
+
+class MenuController extends Controller
 {
     //菜单列表
     public function index(Request $request)
@@ -50,7 +51,8 @@ class MenuController extends AdminController
         $data =  $request->all();
         if(is_null($data['icon']))
             $data['icon'] = '';
-        $data['guard_name'] = $this->guard_name;
+        $app = app();
+        $data['guard_name'] = $app['auth']->getDefaultDriver();
         $menu_1 = DB::table('menus')->where(['uri'=>$data['uri']])->first();
         if($menu_1)
             return ['code'=>1001,'msg'=>'路由地址已存在'];

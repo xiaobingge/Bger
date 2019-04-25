@@ -5,10 +5,11 @@ namespace App;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SMartins\PassportMultiauth\HasMultiAuthApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class Admin extends Authenticatable
 {
-    use Notifiable,HasMultiAuthApiTokens;
+    use Notifiable,HasMultiAuthApiTokens,HasRoles;
 
     /**
      * The attributes that are mass assignable.

@@ -9,12 +9,6 @@ use GuzzleHttp\Client;
 
 class AdminController extends Controller
 {
-    protected $guard_name;
-    public function __construct()
-    {
-        $app = app();
-        $this->guard_name  = $app['auth']->getDefaultDriver();
-    }
 
     //登录接口处理
     public function getToken(Request $request){

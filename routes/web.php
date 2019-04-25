@@ -26,6 +26,9 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 
+
+
+
 //后台管理系统路由
 Route::any('admin/getToken', 'AdminController@getToken');
 Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
@@ -43,6 +46,10 @@ Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
     Route::post('role/create', 'Admin\RoleController@create');
     Route::post('role/update', 'Admin\RoleController@update');
     Route::get('role/delete', 'Admin\RoleController@delete');
+    Route::get('role/permission', 'Admin\RoleController@getPermission');
+    Route::post('role/setPermission', 'Admin\RoleController@setPermission');
+    Route::get('role/getUsers', 'Admin\RoleController@getUsers');
+    Route::post('role/bindUsers', 'Admin\RoleController@bindUsers');
 
     Route::get('user/index', 'Admin\UserController@index');
 
