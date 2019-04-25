@@ -110,5 +110,6 @@ return [
             'expire' => 60,
         ]
     ],
-
+    //超级管理员拥有所有权限
+    'administrators' => ['bingge','admin'],
 ];

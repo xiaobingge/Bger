@@ -63,5 +63,6 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'oauth.providers' => \SMartins\PassportMultiauth\Http\Middleware\AddCustomProvider::class,
         'multiauth' => \SMartins\PassportMultiauth\Http\Middleware\MultiAuthenticate::class,
+        'permission'=> \App\Http\Middleware\Permission::class,
     ];
 }

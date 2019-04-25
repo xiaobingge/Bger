@@ -13,7 +13,6 @@ class UserController extends Controller
     {
         $users = DB::table('admins')->get();
         return ['code'=>1000,'data'=>['items'=>$users,'total'=>$users->count()]];
-
     }
 
     //获取用户信息
@@ -27,8 +26,9 @@ class UserController extends Controller
     }
 
     //获取权限菜单
-    public function menu()
+    public function menu(Request $request)
     {
+        $user =  $request->user();
         $data = DB::table('menus')->where([['status','=',1],['menu_type','<',3]])->orderBy('sort','asc')->get();
         $menu = [];
         foreach($data as $k=>$v){
@@ -40,13 +40,19 @@ class UserController extends Controller
                 $item['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
                 $menu[$v->id] = $item;
             }else{
-                $son = [];
-                $son['path'] = $v->uri;
-                $son['component'] = $v->permission_name;
-                $son['name'] = $v->permission_name;
-                $son['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
-                $menu[$v->parent_id]['children'][] = $son;
+                if($user->hasPermissionTo($v->permission_name)){
+                    $son = [];
+                    $son['path'] = $v->uri;
+                    $son['component'] = $v->permission_name;
+                    $son['name'] = $v->permission_name;
+                    $son['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
+                    $menu[$v->parent_id]['children'][] = $son;
+                }
             }
+        }
+        foreach($menu as $k=>$v){
+            if(empty($v['children']))
+                unset($menu[$k]);
         }
         return ['code'=>1000,'msg'=>'success','data'=>array_values($menu)];
     }
