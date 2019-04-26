@@ -2,17 +2,60 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
 
     public function index(Request $request)
     {
-        $users = DB::table('admins')->get();
+        $users = Admin::get();
+        foreach($users as $key=>$value){
+            $value->roles = $value->hasAllRoles(Role::all());
+        }
         return ['code'=>1000,'data'=>['items'=>$users,'total'=>$users->count()]];
+    }
+
+    public function create(Request $request)
+    {
+        $data = $request->all();
+        if(empty($data['password']))
+            $data['password'] = 123456;
+        $validator = Validator::make($data, [
+            'name' => 'required|string|max:191|unique:admins',
+            'email' => 'required|string|email|max:191|unique:admins',
+            'password' => 'required|min:6',
+        ]);
+        if ($validator->fails()) {
+            $error = \GuzzleHttp\json_decode($validator->errors(),true);
+            if(!empty($error['name'])){
+                $msg = $error['name'];
+            }elseif(!empty($error['email'])){
+                $msg = $error['email'];
+            }else{
+                $msg = $error['password'];
+            }
+            return ['code'=>1001,'msg'=>$msg];
+        }else{
+            $res = Admin::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+            ]);
+            return ['code'=>1000,'data'=>$res];
+        }
+    }
+
+    public function getRoles(Request $request)
+    {
+        $roles = Role::all();
+        return ['code'=>1000,'data'=>['roles'=>$roles]];
     }
 
     //获取用户信息

@@ -93,7 +93,6 @@ class RoleController extends Controller
                     }
                 }
             }
-
             $data[]  = $dd;
         }
         return ['code'=>1000,'data'=>$data];
