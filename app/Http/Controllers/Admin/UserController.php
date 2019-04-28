@@ -52,7 +52,26 @@ class UserController extends Controller
         }
     }
 
-    public function getRoles(Request $request)
+    public function update(Request $request){
+        $uid = $request->input('id');
+        $role_ids = $request->input('selected_ids');
+        $user = Admin::find($uid);
+        if(empty($role_ids)){
+            $roles = $user->hasAllRoles(Role::all());
+            if(false === $roles){
+                return ['code'=>1001,'msg'=>'请选择一个角色'];
+            }else{
+                foreach($roles as $k=>$v){
+                    $user->removeRole($v->name);
+                }
+            }
+        }else{
+            $user->syncRoles($role_ids);
+        }
+        return ['code'=>1000,'data'=>$user];
+    }
+
+    public function getRoles()
     {
         $roles = Role::all();
         return ['code'=>1000,'data'=>['roles'=>$roles]];
