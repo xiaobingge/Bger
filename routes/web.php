@@ -54,6 +54,9 @@ Route::group(['middleware' => ['api', 'multiauth:admin',]], function () {
         Route::get('user/getRoles', 'Admin\UserController@getRoles');
         Route::post('user/create', 'Admin\UserController@create');
         Route::post('user/update', 'Admin\UserController@update');
+        Route::get('user/updateStatus', 'Admin\UserController@updateStatus');
+        Route::get('user/permission', 'Admin\UserController@getPermission');
+        Route::post('user/setPermission', 'Admin\UserController@setPermission');
     });
 });
 

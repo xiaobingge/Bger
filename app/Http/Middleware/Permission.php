@@ -22,7 +22,7 @@ class Permission
         if( ($data  && $request->user()->can($data->permission_name) || in_array($request->user()->name,config('auth.administrators')))){
             return $next($request);
         }else{
-            return  response(['code'=>1024,'msg'=>'您没权限操作']);
+            return  response(['code'=>1024,'msg'=>'您没权限操作，请联系管理员']);
         }
     }
 }

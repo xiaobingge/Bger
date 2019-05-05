@@ -30,7 +30,7 @@ class Admin extends Authenticatable
     ];
 
     public function findForPassport($username) {
-        return $this->where('name', $username)->first();
+        return $this->where(['name'=>$username,'status'=>1])->first();
     }
 
 }

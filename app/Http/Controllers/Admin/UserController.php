@@ -15,11 +15,33 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $users = Admin::get();
+        $type = $request->input('type');
+        $page = $request->input('page',1);
+        $limit = $request->input('limit',10);
+        $sort = $request->input('sort','+id');
+        $keyword = $request->input('keyword','');
+        $export = $request->input('export',0);
+        $ep = $sort == '+id' ? 'asc' :'desc';
+        $obj = Admin::where('id','>',0);
+        if(!empty($type) && !empty($keyword)){
+            switch($type){
+                case 1:
+                    $obj = Admin::where(['name'=>$keyword]);
+                    break;
+                case 2:
+                    $obj = Admin::where(['email'=>$keyword]);
+                    break;
+            }
+        }
+        $count = $obj->count();
+        if($export != 1){
+            $obj->offset(($page-1)*$limit)->limit($limit);
+        }
+        $users = $obj->orderBy('id',$ep)->get();
         foreach($users as $key=>$value){
             $value->roles = $value->hasAllRoles(Role::all());
         }
-        return ['code'=>1000,'data'=>['items'=>$users,'total'=>$users->count()]];
+        return ['code'=>1000,'data'=>['items'=>$users,'total'=>$count]];
     }
 
     public function create(Request $request)
@@ -71,6 +93,74 @@ class UserController extends Controller
         return ['code'=>1000,'data'=>$user];
     }
 
+    public function getPermission(Request $request)
+    {
+        $data = [];
+        $uid =  $request->input('id',0);
+        if(empty($uid))
+            return ['code'=>1001,'msg'=>'参数缺失'];
+        $user = Admin::find($uid);
+        $menu = DB::table('menus')->get();
+        $arr = $top = [];
+        foreach($menu as $key=>$value){
+            $item = [];
+            if($value->parent_id == 0){
+                $top[$value->id]['name'] = $value->menu_name;
+            }else{
+                $item['id'] = $value->id;
+                $item['name'] = $value->menu_name;
+                $item['parent_id'] = $value->parent_id;
+                $item['checked'] = false;
+                $permissions = $user->getDirectPermissions();
+                foreach($permissions as $k=>$v){
+                    if($v->name == $value->permission_name)
+                        $item['checked'] = true;
+                }
+                $arr[$value->parent_id][] = $item;
+            }
+        }
+        foreach($top  as $k=>$v){
+            $dd['id'] = $k;
+            $dd['name'] = $v['name'];
+            $dd['isIndeterminate'] = false;
+            $dd['menu'] = !empty($arr[$k]) ? $arr[$k] : [];
+            if(!empty($dd['menu'])){
+                foreach($dd['menu'] as $kk=>$vv){
+                    if(!empty($arr[$vv['id']])){
+                        $dd['menu'][$kk]['son'] = $arr[$vv['id']];
+                    }
+                }
+            }
+            $data[]  = $dd;
+        }
+        return ['code'=>1000,'data'=>$data];
+    }
+
+    public function setPermission(Request $request){
+        $uid =  $request->input('uid',0);
+        $ids = $request->input('ids');
+        if(empty($uid) || empty($ids))
+            return ['code'=>1001,'msg'=>'参数缺失'];
+        $menu = DB::table('menus')->whereIn('id',$ids)->get();
+        $user = Admin::find($uid);
+        $permissions = [];
+        foreach($menu as $key=>$value){
+            $permissions[] = $value->permission_name;
+        }
+        $user->syncPermissions($permissions);
+        return ['code'=>1000];
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $uid =  $request->input('id',0);
+        $type = $request->input('type',0);
+        if(empty($uid) || !in_array($type,[0,1]))
+            return ['code'=>1001,'msg'=>'参数缺失'];
+        Admin::where(['id'=>$uid])->update(['status'=>$type]);
+        return ['code'=>1000];
+    }
+
     public function getRoles()
     {
         $roles = Role::all();
@@ -102,7 +192,7 @@ class UserController extends Controller
                 $item['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
                 $menu[$v->id] = $item;
             }else{
-                if($user->hasPermissionTo($v->permission_name)){
+                if($user->hasPermissionTo($v->permission_name) && !empty($menu[$v->parent_id])){
                     $son = [];
                     $son['path'] = $v->uri;
                     $son['component'] = $v->permission_name;

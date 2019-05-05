@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use App\Admin;
 
 
 class AdminController extends Controller
@@ -12,6 +13,13 @@ class AdminController extends Controller
 
     //登录接口处理
     public function getToken(Request $request){
+
+        $user = Admin::where(['name'=>$request->input('username')])->first();
+        if(!$user)
+            return ['code'=>1001,'msg'=>'用户不存在'];
+        if($user->status == 0)
+            return ['code'=>1002,'msg'=>'用户已锁定'];
+
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',

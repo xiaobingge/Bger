@@ -63,7 +63,7 @@ class RoleController extends Controller
         if(empty($role_id))
             return ['code'=>1001,'msg'=>'参数缺失'];
         $role = Role::findById($role_id);
-        $menu = DB::table('menus')->where(['status'=>1])->get();
+        $menu = DB::table('menus')->get();
         $arr = $top = [];
         foreach($menu as $key=>$value){
             $item = [];
