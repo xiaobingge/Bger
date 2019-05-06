@@ -3,23 +3,27 @@
 namespace App\Http\Controllers;
 
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Hashing\BcryptHasher;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use App\Admin;
-
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
 
     //登录接口处理
-    public function getToken(Request $request){
+    public function login(Request $request){
 
         $user = Admin::where(['name'=>$request->input('username')])->first();
         if(!$user)
             return ['code'=>1001,'msg'=>'用户不存在'];
         if($user->status == 0)
             return ['code'=>1002,'msg'=>'用户已锁定'];
-
+        $password = $request->input('password');
+        $hasher = new BcryptHasher();
+        if(!$hasher->check($password, $user->password))
+            return ['code'=>1003,'msg'=>'密码错误'];
         $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',

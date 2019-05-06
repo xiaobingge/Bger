@@ -30,13 +30,13 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 
 //后台管理系统路由
-Route::any('admin/getToken', 'AdminController@getToken');
+Route::any('admin/login', 'AdminController@login');
 Route::group(['middleware' => ['api', 'multiauth:admin',]], function () {
     Route::any('admin/user', 'Admin\UserController@user');
     Route::any('admin/menu', 'Admin\UserController@menu');
+    Route::any('user/updatePassword', 'Admin\UserController@updatePassword');
     Route::group(['middleware' => ['permission']], function () {
         Route::get('menu/index', 'Admin\MenuController@index');
-        Route::get('menu/detail', 'Admin\MenuController@detail');
         Route::post('menu/create', 'Admin\MenuController@create');
         Route::post('menu/update', 'Admin\MenuController@update');
         Route::get('menu/delete', 'Admin\MenuController@delete');

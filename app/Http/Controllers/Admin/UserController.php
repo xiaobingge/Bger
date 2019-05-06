@@ -79,12 +79,12 @@ class UserController extends Controller
         $role_ids = $request->input('selected_ids');
         $user = Admin::find($uid);
         if(empty($role_ids)){
-            $roles = $user->hasAllRoles(Role::all());
+            $roles = $user->getRoleNames();
             if(false === $roles){
                 return ['code'=>1001,'msg'=>'请选择一个角色'];
             }else{
                 foreach($roles as $k=>$v){
-                    $user->removeRole($v->name);
+                    $user->removeRole($v);
                 }
             }
         }else{
@@ -167,6 +167,14 @@ class UserController extends Controller
         return ['code'=>1000,'data'=>['roles'=>$roles]];
     }
 
+    public function updatePassword(Request $request){
+        $user =  $request->user();
+        $password = $request->input('password','');
+        if(empty($password))
+            return ['code'=>1001,'msg'=>'参数错误'];
+        Admin::where(['id'=>$user->id])->update(['password'=> Hash::make($password)]);
+        return ['code'=>1000];
+    }
     //获取用户信息
     public function user(Request $request)
     {
