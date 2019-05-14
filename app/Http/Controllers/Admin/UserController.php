@@ -181,7 +181,7 @@ class UserController extends Controller
         $user =  $request->user();
         $user['avatar'] = "https://avatars2.githubusercontent.com/u/26640264?s=460&v=4";
         $user['introduction'] = "程序员一枚";
-        $user['roles'] = ['editor'];
+        $user['roles'] = ['edit'];
         return ['code'=>1000,'msg'=>'success','data'=>$user];
     }
 
@@ -200,7 +200,7 @@ class UserController extends Controller
                 $item['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
                 $menu[$v->id] = $item;
             }else{
-                if($user->hasPermissionTo($v->permission_name) && !empty($menu[$v->parent_id])){
+                if(($user->hasPermissionTo($v->permission_name) || in_array($user->name,config('auth.administrators'))) && !empty($menu[$v->parent_id])){
                     $son = [];
                     $son['path'] = $v->uri;
                     $son['component'] = $v->permission_name;
