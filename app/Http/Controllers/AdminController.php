@@ -12,7 +12,10 @@ class AdminController extends Controller
 {
     //登录接口处理
     public function login(Request $request){
-
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
         $user = Admin::where(['name'=>$request->input('username')])->first();
         if(!$user)
             return ['code'=>1001,'msg'=>'用户不存在'];
@@ -21,10 +24,6 @@ class AdminController extends Controller
         $password = $request->input('password');
         if(!Hash::check($password, $user->password))
             return ['code'=>1003,'msg'=>'密码错误'];
-        $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ]);
         $http = new Client();
         // 发送相关字段到后端应用获取授权令牌
         try{
