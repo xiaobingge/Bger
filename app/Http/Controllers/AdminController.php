@@ -27,7 +27,7 @@ class AdminController extends Controller
         $http = new Client();
         // 发送相关字段到后端应用获取授权令牌
         try{
-            $response = $http->post('http://bger.com/oauth/token', [
+            $response = $http->post(env('APP_URL').'/oauth/token', [
                 'form_params' => [
                     'grant_type' => 'password',
                     'client_id' => config('services.admins.appid'),
