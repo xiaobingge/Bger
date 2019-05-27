@@ -30,7 +30,7 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 
 //后台管理系统路由
-Route::any('admin/login', 'AdminController@login');
+Route::any('admin/loginCenter', 'AdminController@login');
 Route::group(['middleware' => ['api', 'multiauth:admin',]], function () {
     Route::any('admin/user', 'Admin\UserController@user');
     Route::any('admin/menu', 'Admin\UserController@menu');
