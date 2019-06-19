@@ -49,6 +49,7 @@ class MenuController extends Controller
     public function create(Request $request)
     {
         $data =  $request->all();
+        unset($data['_url']);
         if(is_null($data['icon']))
             $data['icon'] = '';
         $app = app();
@@ -69,6 +70,7 @@ class MenuController extends Controller
     public function update(Request $request)
     {
         $data = $request->all();
+        unset($data['_url']);
         if(is_null($data['icon']))
             $data['icon'] = '';
         $app = app();
