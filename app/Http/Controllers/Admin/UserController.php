@@ -200,7 +200,7 @@ class UserController extends Controller
                 $item['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
                 $menu[$v->id] = $item;
             }else{
-                if(($user->hasPermissionTo($v->permission_name) || in_array($user->name,config('auth.administrators'))) && !empty($menu[$v->parent_id])){
+                if($user->hasPermissionTo($v->permission_name) || in_array($user->name,config('auth.administrators'))){
                     $son = [];
                     $son['path'] = $v->uri;
                     $son['component'] = $v->permission_name;
