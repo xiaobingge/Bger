@@ -189,7 +189,7 @@ class UserController extends Controller
     public function menu(Request $request)
     {
         $user =  $request->user();
-        $data = DB::table('menus')->where([['status','=',1],['menu_type','<',3]])->orderBy(['menu_type','asc'],['sort','asc'])->get();
+        $data = DB::table('menus')->where([['status','=',1],['menu_type','<',3]])->orderBy('menu_type','asc')->orderBy('sort','asc')->get();
         $menu = [];
         foreach($data as $k=>$v){
             $item = [];
