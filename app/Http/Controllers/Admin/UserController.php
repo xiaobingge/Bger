@@ -12,7 +12,6 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-
     public function index(Request $request)
     {
         $type = $request->input('type');
@@ -159,13 +158,13 @@ class UserController extends Controller
         if(empty($uid) || !in_array($type,[0,1]))
             return ['code'=>1001,'msg'=>'参数缺失'];
         Admin::where(['id'=>$uid])->update(['status'=>$type]);
-        return ['code'=>1000];
+        return ['code'=>1000,'msg'=>'success'];
     }
 
     public function getRoles()
     {
         $roles = Role::all();
-        return ['code'=>1000,'data'=>['roles'=>$roles]];
+        return ['code'=>1000,'msg'=>'success','data'=>['roles'=>$roles]];
     }
 
     public function updatePassword(Request $request){
@@ -174,7 +173,7 @@ class UserController extends Controller
         if(empty($password))
             return ['code'=>1001,'msg'=>'参数错误'];
         Admin::where(['id'=>$user->id])->update(['password'=> Hash::make($password)]);
-        return ['code'=>1000];
+        return ['code'=>1000,'msg'=>'success'];
     }
     //获取用户信息
     public function user(Request $request)

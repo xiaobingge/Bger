@@ -66,6 +66,7 @@ class MenuController extends Controller
         $id = DB::table('menus')->insertGetId($data);
         return ['code'=>1000,'msg'=>'success','data'=>['id'=>$id]];
     }
+
     //编辑菜单
     public function update(Request $request)
     {

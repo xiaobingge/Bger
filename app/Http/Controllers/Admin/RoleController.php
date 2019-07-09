@@ -110,7 +110,7 @@ class RoleController extends Controller
             $permissions[] = $value->permission_name;
         }
         $role->syncPermissions($permissions);
-        return ['code'=>1000];
+        return ['code'=>1000,'msg'=>'success'];
     }
 
     public function getUsers(Request $request){
@@ -171,7 +171,7 @@ class RoleController extends Controller
                 $v->assignRole($role->name);
             }
         }
-        return ['code'=>1000];
+        return ['code'=>1000,'msg'=>'success'];
     }
 
 }
