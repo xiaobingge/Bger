@@ -15,19 +15,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('admin/login', 'Admin\LoginController@showLoginForm')->name('admin.login');
-Route::post('admin/login', 'Admin\LoginController@login');
-Route::get('admin/register', 'Admin\RegisterController@showRegistrationForm')->name('admin.register');
-Route::post('admin/register', 'Admin\RegisterController@register');
-Route::post('admin/logout', 'Admin\LoginController@logout')->name('admin.logout');
-Route::get('admin', 'AdminController@index')->name('admin.home');
-Route::any('admin/user', 'AdminController@user')->name('admin.user');
+//Route::get('admin/login', 'Admin\LoginController@showLoginForm')->name('admin.login');
+//Route::post('admin/login', 'Admin\LoginController@login');
+//Route::get('admin/register', 'Admin\RegisterController@showRegistrationForm')->name('admin.register');
+//Route::post('admin/register', 'Admin\RegisterController@register');
+//Route::post('admin/logout', 'Admin\LoginController@logout')->name('admin.logout');
+//Route::get('admin', 'AdminController@index')->name('admin.home');
+//Route::any('admin/user', 'AdminController@user')->name('admin.user');
 Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
-
-
-
-
 
 //后台管理系统路由
 Route::any('admin/loginCenter', 'AdminController@login');

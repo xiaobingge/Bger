@@ -70,6 +70,7 @@ class UserController extends Controller
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
             ]);
+            $res['status'] = 1;
             return ['code'=>1000,'data'=>$res];
         }
     }
