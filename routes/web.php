@@ -25,6 +25,10 @@ Route::get('/', function () {
 Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::get('user/login', function (Request $request) {
+
+    echo $request->input('code');
+});
 //后台管理系统路由
 Route::any('admin/loginCenter', 'AdminController@login');
 Route::group(['middleware' => ['api', 'multiauth:admin',]], function () {
