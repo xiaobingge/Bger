@@ -27,7 +27,7 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::get('user/login', function () {
     $user = session('wechat.oauth_user.default');
-   print_r($user);
+   print_r($user->getOriginal());
 })->middleware('wechat.oauth');
 //后台管理系统路由
 Route::any('admin/loginCenter', 'AdminController@login');
