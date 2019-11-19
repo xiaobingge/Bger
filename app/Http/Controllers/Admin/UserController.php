@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Admin;
 use App\Http\Controllers\Controller;
+use App\Models\Apps;
+use App\Models\Menus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
@@ -21,7 +23,8 @@ class UserController extends Controller
         $keyword = $request->input('keyword','');
         $export = $request->input('export',0);
         $ep = $sort == '+id' ? 'asc' :'desc';
-        $obj = Admin::where('id','>',0);
+        $obj = Admin::query();
+        $obj->where('id','>',0);
         if(!empty($type) && !empty($keyword)){
             switch($type){
                 case 1:
@@ -39,6 +42,7 @@ class UserController extends Controller
         $users = $obj->orderBy('id',$ep)->get();
         foreach($users as $key=>$value){
             $value->roles = $value->hasAllRoles(Role::all());
+            $value->apps = !empty($value->app_ids) ? Apps::whereIn('id',explode(',',$value->app_ids))->get() : '';
         }
         return ['code'=>1000,'data'=>['items'=>$users,'total'=>$count]];
     }
@@ -64,12 +68,20 @@ class UserController extends Controller
             }
             return ['code'=>1001,'msg'=>$msg];
         }else{
+            //应用处理
+            $app_ids = $request->input('selected_app_ids');
             $res = Admin::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
+                'app_ids' => !empty($app_ids) ? implode(',',$app_ids): '',
             ]);
             $res['status'] = 1;
+            //角色处理
+            $role_ids = $request->input('selected_ids');
+            if(!empty($role_ids)){
+                $res->syncRoles($role_ids);
+            }
             return ['code'=>1000,'data'=>$res];
         }
     }
@@ -77,6 +89,9 @@ class UserController extends Controller
     public function update(Request $request){
         $uid = $request->input('id');
         $role_ids = $request->input('selected_ids');
+        $app_ids = $request->input('selected_app_ids');
+        $app_str = !empty($app_ids) ? implode(',',$app_ids) : '';
+        Admin::where(['id'=>$uid])->update(['app_ids'=>$app_str]);
         $user = Admin::find($uid);
         if(empty($role_ids)){
             $roles = $user->getRoleNames();
@@ -90,7 +105,27 @@ class UserController extends Controller
         }else{
             $user->syncRoles($role_ids);
         }
+        $user->apps = !empty($app_ids) ? Apps::whereIn('id',$app_ids)->get() : '';
         return ['code'=>1000,'data'=>$user];
+    }
+
+    //删除数据处理
+    public function delete(Request $request){
+        $id = $request->input('id');
+        if(empty($id))
+            return ['code'=>1001,'msg'=>'参数丢失'];
+        $user = Admin::where(['id'=>$id])->first();
+        if(empty($user->id))
+            return ['code'=>1002,'msg'=>'用户不存在'];
+        if(in_array($user->name,config('auth.administrators')))
+            return ['code'=>1003,'msg'=>'系統用戶不能刪除'];
+        //角色清空
+        $user->syncRoles([]);
+        //权限清空
+        $user->syncPermissions([]);
+        //删除用户
+        Admin::where(['id'=>$id])->delete();
+        return ['code'=>1000];
     }
 
     public function getPermission(Request $request)
@@ -100,7 +135,7 @@ class UserController extends Controller
         if(empty($uid))
             return ['code'=>1001,'msg'=>'参数缺失'];
         $user = Admin::find($uid);
-        $menu = DB::table('menus')->get();
+        $menu = Menus::get();
         $arr = $top = [];
         foreach($menu as $key=>$value){
             $item = [];
@@ -139,15 +174,26 @@ class UserController extends Controller
     public function setPermission(Request $request){
         $uid =  $request->input('uid',0);
         $ids = $request->input('ids');
-        if(empty($uid) || empty($ids))
+        if(empty($uid))
             return ['code'=>1001,'msg'=>'参数缺失'];
-        $menu = DB::table('menus')->whereIn('id',$ids)->get();
         $user = Admin::find($uid);
-        $permissions = [];
-        foreach($menu as $key=>$value){
-            $permissions[] = $value->permission_name;
+        if(!empty($ids)){
+            $menu = Menus::whereIn('id',$ids)->get();
+            $permissions = [];
+            foreach($menu as $key=>$value){
+                $permissions[] = $value->permission_name;
+            }
+            $user->syncPermissions($permissions);
+        }else{
+            $permissions = $user->getDirectPermissions();
+            if($permissions){
+                foreach($permissions as $k=>$v){
+                    $user->revokePermissionTo($v->name);
+                }
+            }else{
+                return ['code'=>1002,'msg'=>'请至少选择一个权限'];
+            }
         }
-        $user->syncPermissions($permissions);
         return ['code'=>1000];
     }
 
@@ -158,14 +204,10 @@ class UserController extends Controller
         if(empty($uid) || !in_array($type,[0,1]))
             return ['code'=>1001,'msg'=>'参数缺失'];
         Admin::where(['id'=>$uid])->update(['status'=>$type]);
+        //删除token
         return ['code'=>1000,'msg'=>'success'];
     }
 
-    public function getRoles()
-    {
-        $roles = Role::all();
-        return ['code'=>1000,'msg'=>'success','data'=>['roles'=>$roles]];
-    }
 
     public function updatePassword(Request $request){
         $user =  $request->user();
@@ -182,14 +224,18 @@ class UserController extends Controller
         $user['avatar'] = "https://avatars2.githubusercontent.com/u/26640264?s=460&v=4";
         $user['introduction'] = "程序员一枚";
         $user['roles'] = ['edit'];
+        $user['apps'] = !empty($user->app_ids) ? Apps::whereIn('id',explode(',',$user->app_ids))->get() : '';
         return ['code'=>1000,'msg'=>'success','data'=>$user];
     }
 
     //获取权限菜单
     public function menu(Request $request)
     {
+        //开发阶段每次清理下权限缓存
+        if(env('APP_DEBUG'))
+            Cache::forget(config('permission.cache.key'));
         $user =  $request->user();
-        $data = DB::table('menus')->where([['status','=',1],['menu_type','<',3]])->orderBy('menu_type','asc')->orderBy('sort','asc')->get();
+        $data = Menus::where([['menu_type','<',3]])->orderBy('menu_type','asc')->orderBy('sort','asc')->get();
         $menu = [];
         foreach($data as $k=>$v){
             $item = [];
@@ -198,6 +244,8 @@ class UserController extends Controller
                 $item['component'] = 'layout';
                 $item['name'] = $v->permission_name;
                 $item['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
+                if($v->status == 0)
+                    $item['hidden'] = true;
                 $menu[$v->id] = $item;
             }else{
                 if($user->hasPermissionTo($v->permission_name) || in_array($user->name,config('auth.administrators'))){
@@ -206,6 +254,8 @@ class UserController extends Controller
                     $son['component'] = $v->permission_name;
                     $son['name'] = $v->permission_name;
                     $son['meta'] = ['title'=>$v->menu_name,'icon'=>$v->icon];
+                    if($v->status == 0)
+                        $son['hidden'] = true;
                     $menu[$v->parent_id]['children'][] = $son;
                 }
             }
@@ -216,4 +266,13 @@ class UserController extends Controller
         }
         return ['code'=>1000,'msg'=>'success','data'=>array_values($menu)];
     }
+
+    //获取角色
+    public function getRoles()
+    {
+        $roles = Role::all();
+        $apps = Apps::where(['status'=>1])->get();
+        return ['code'=>1000,'msg'=>'success','data'=>['roles'=>$roles,'apps'=>$apps]];
+    }
+
 }

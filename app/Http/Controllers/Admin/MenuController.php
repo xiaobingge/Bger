@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Menus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 class MenuController extends Controller
@@ -19,7 +19,7 @@ class MenuController extends Controller
         $name = $request->input('menu_name','');
         $export = $request->input('export',0);
         $ep = $sort == '+id' ? 'asc' :'desc';
-        $obj = DB::table('menus');
+        $obj = Menus::query();
         if(!empty($name)){
             $obj->where(['menu_name'=>$name]);
         }else{
@@ -33,7 +33,7 @@ class MenuController extends Controller
         }
         $list = $obj->orderBy('id',$ep)->get();
         //菜单树处理
-        $data = DB::table('menus')->get();
+        $data = Menus::get();
         $tree = [];
         foreach($data as $k=>$v){
             $item = [];
@@ -54,16 +54,16 @@ class MenuController extends Controller
             $data['icon'] = '';
         $app = app();
         $data['guard_name'] = $app['auth']->getDefaultDriver();
-        $menu_1 = DB::table('menus')->where(['uri'=>$data['uri']])->first();
+        $menu_1 = Menus::where(['uri'=>$data['uri']])->first();
         if($menu_1)
             return ['code'=>1001,'msg'=>'路由地址已存在'];
-         //创建权限点
-        $permission = DB::table('permissions')->where(['name' => $data['permission_name'], 'guard_name' => $data['guard_name']])->first();
+        //创建权限点
+        $permission = Permission::where(['name' => $data['permission_name'], 'guard_name' => $data['guard_name']])->first();
         if($permission){
             return ['code'=>1001,'msg'=>'权限标识已存在'];
         }
         Permission::create(['name'=>$data['permission_name'],'guard_name'=>$data['guard_name']]);
-        $id = DB::table('menus')->insertGetId($data);
+        $id = Menus::insertGetId($data);
         return ['code'=>1000,'msg'=>'success','data'=>['id'=>$id]];
     }
 
@@ -78,16 +78,16 @@ class MenuController extends Controller
         $data['guard_name'] = $app['auth']->getDefaultDriver();
         $id = $data['id'];
         unset($data['id']);
-        $menu = DB::table('menus')->where(['id'=>$id])->first();
+        $menu = Menus::where(['id'=>$id])->first();
         if($menu->uri != $data['uri']){
-            $menu_1 = DB::table('menus')->where(['uri'=>$data['uri']])->first();
+            $menu_1 = Menus::where(['uri'=>$data['uri']])->first();
             if($menu_1)
                 return ['code'=>1001,'msg'=>'路由地址已存在'];
         }
         if($menu->permission_name != $data['permission_name']){
             return ['code'=>1001,'msg'=>'权限标识不可修改'];
         }
-        DB::table('menus')->where(['id'=>$id])->update($data);
+        Menus::where(['id'=>$id])->update($data);
         return ['code'=>1000,'msg'=>'success'];
     }
 
@@ -96,29 +96,31 @@ class MenuController extends Controller
     {
         $id = $request->input('id');
         $type = $request->input('type');
+        $app = app();
+        $guard_name = $app['auth']->getDefaultDriver();
         if(empty($id) || !in_array($type,[1,2,3]))
             return ['code'=>1001,'msg'=>'参数丢失'];
-        $menu = DB::table('menus')->where(['id'=>$id])->first();
-        if(!$menu)
+        $flag = $this->deleteMenus($id,$guard_name);
+        if($flag)
+            return ['code'=>1000,'msg'=>'success'];
+        else
             return ['code'=>1002,'msg'=>'参数错误'];
-        DB::table('menus')->where(['id'=>$id])->delete();
-        switch($type){
-            case 1:
-                $son = DB::table('menus')->where(['parent_id'=>$id])->get();
-                DB::table('menus')->where(['parent_id'=>$id])->delete();
-                if(!$son->isEmpty()){
-                    foreach($son as $k=>$v){
-                        DB::table('menus')->where(['parent_id'=>$v->id])->delete();
-                    }
-                }
-                break;
-            case 2:
-                DB::table('menus')->where(['parent_id'=>$id])->delete();
-                break;
-            case 3:
-                break;
+    }
+
+    private function deleteMenus($id,$guard_name)
+    {
+        $menu = Menus::where(['id'=>$id])->first();
+        if(!$menu)
+            return false;
+        Menus::where(['id'=>$id])->delete();
+        Permission::where(['guard_name'=>$guard_name,'name'=>$menu->permission_name])->delete();
+        $son = Menus::where(['parent_id'=>$id])->get();
+        if(!$son->isEmpty()){
+            foreach($son as $k=>$v){
+                $this->deleteMenus($v->id,$guard_name);
+            }
         }
-        return ['code'=>1000,'msg'=>'success'];
+        return true;
     }
 
 }

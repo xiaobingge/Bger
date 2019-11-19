@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Menus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Auth;
 use App\Admin;
@@ -14,7 +14,7 @@ class RoleController extends Controller
 
     public function index()
     {
-        $roles = DB::table('roles')->get();
+        $roles = Role::get();
         return ['code'=>1000,'data'=>$roles];
     }
 
@@ -25,7 +25,7 @@ class RoleController extends Controller
         $name = $request->input('name');
         if(empty($name))
             return ['code'=>1001,'msg'=>'角色名称不能为空'];
-        $role = DB::table('roles')->where(['name'=>$name,'guard_name'=>$guard_name])->first();
+        $role = Role::where(['name'=>$name,'guard_name'=>$guard_name])->first();
         if($role)
             return ['code'=>1002,'msg'=>'角色名称已存在'];
         $role = Role::create(['name'=>$name,'guard_name'=>$guard_name]);
@@ -40,10 +40,10 @@ class RoleController extends Controller
             return ['code'=>1001,'msg'=>'角色名称不能为空'];
         if(empty($id))
             return ['code'=>1001,'msg'=>'ID不能为空'];
-        $role = DB::table('roles')->where(['id'=>$id])->first();
+        $role = Role::where(['id'=>$id])->first();
         if($role->name == $name)
             return ['code'=>1003,'msg'=>'无更新内容'];
-        DB::table('roles')->where(['id'=>$id])->update(['name'=>$name]);
+        Role::where(['id'=>$id])->update(['name'=>$name]);
         return ['code'=>1000,'msg'=>'success'];
     }
 
@@ -52,7 +52,7 @@ class RoleController extends Controller
         $id = $request->input('id');
         if(empty($id))
             return ['code'=>1001,'msg'=>'ID不能为空'];
-        DB::table('roles')->where(['id'=>$id])->delete();
+        Role::where(['id'=>$id])->delete();
         return ['code'=>1000,'msg'=>'success'];
     }
 
@@ -63,7 +63,7 @@ class RoleController extends Controller
         if(empty($role_id))
             return ['code'=>1001,'msg'=>'参数缺失'];
         $role = Role::findById($role_id);
-        $menu = DB::table('menus')->get();
+        $menu = Menus::get();
         $arr = $top = [];
         foreach($menu as $key=>$value){
             $item = [];
@@ -101,15 +101,28 @@ class RoleController extends Controller
     public function setPermission(Request $request){
         $role_id =  $request->input('role_id',0);
         $ids = $request->input('ids');
-        if(empty($role_id) || empty($ids))
+        if(empty($role_id))
             return ['code'=>1001,'msg'=>'参数缺失'];
-        $menu = DB::table('menus')->whereIn('id',$ids)->get();
         $role = Role::findById($role_id);
-        $permissions = [];
-        foreach($menu as $key=>$value){
-            $permissions[] = $value->permission_name;
+        if(!empty($ids)){
+            $menu = Menus::whereIn('id',$ids)->get();
+            $permissions = [];
+            foreach($menu as $key=>$value){
+                $permissions[] = $value->permission_name;
+            }
+            $role->syncPermissions($permissions);
+        }else{
+            $menu = Menus::where('menu_type','>',1)->get(); //顶级菜单没加入权限系统
+            $i = 0;
+            foreach($menu as $key=>$value){
+                if($role->hasPermissionTo($value->permission_name)){
+                    $i ++;
+                    $role->revokePermissionTo($value->permission_name);
+                }
+            }
+            if($i == 0)
+                return ['code'=>1002,'msg'=>'请至少选择一个权限'];
         }
-        $role->syncPermissions($permissions);
         return ['code'=>1000,'msg'=>'success'];
     }
 
@@ -160,13 +173,13 @@ class RoleController extends Controller
             }
         }
         if(!empty($unbind)){
-           $users_1 = Admin::whereIn('id',$unbind)->get();
-           foreach($users_1 as $k=>$v){
-               $v->removeRole($role->name);
-           }
+            $users_1 = Admin::whereIn('id',$unbind)->get();
+            foreach($users_1 as $k=>$v){
+                $v->removeRole($role->name);
+            }
         }
         if(!empty($bind)){
-           $users_2 =  Admin::whereIn('id',$bind)->get();
+            $users_2 =  Admin::whereIn('id',$bind)->get();
             foreach($users_2 as $k=>$v){
                 $v->assignRole($role->name);
             }

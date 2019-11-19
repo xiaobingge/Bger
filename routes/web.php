@@ -22,13 +22,10 @@ Route::get('/', function () {
 //Route::post('admin/logout', 'Admin\LoginController@logout')->name('admin.logout');
 //Route::get('admin', 'AdminController@index')->name('admin.home');
 //Route::any('admin/user', 'AdminController@user')->name('admin.user');
-Auth::routes();
+//Auth::routes();
+
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('user/login', function () {
-    $user = session('wechat.oauth_user.default');
-   print_r($user->getOriginal());
-})->middleware('wechat.oauth');
 //后台管理系统路由
 Route::any('admin/loginCenter', 'AdminController@login');
 Route::group(['middleware' => ['api', 'multiauth:admin',]], function () {
