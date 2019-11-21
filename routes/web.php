@@ -15,45 +15,53 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-//Route::get('admin/login', 'Admin\LoginController@showLoginForm')->name('admin.login');
-//Route::post('admin/login', 'Admin\LoginController@login');
-//Route::get('admin/register', 'Admin\RegisterController@showRegistrationForm')->name('admin.register');
-//Route::post('admin/register', 'Admin\RegisterController@register');
-//Route::post('admin/logout', 'Admin\LoginController@logout')->name('admin.logout');
-//Route::get('admin', 'AdminController@index')->name('admin.home');
-//Route::any('admin/user', 'AdminController@user')->name('admin.user');
 //Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-//后台管理系统路由
-Route::any('admin/loginCenter', 'AdminController@login');
-Route::group(['middleware' => ['api', 'multiauth:admin',]], function () {
-    Route::any('admin/user', 'Admin\UserController@user');
-    Route::any('admin/menu', 'Admin\UserController@menu');
-    Route::any('user/updatePassword', 'Admin\UserController@updatePassword');
-    Route::group(['middleware' => ['permission']], function () {
-        Route::get('menu/index', 'Admin\MenuController@index');
-        Route::post('menu/create', 'Admin\MenuController@create');
-        Route::post('menu/update', 'Admin\MenuController@update');
-        Route::get('menu/delete', 'Admin\MenuController@delete');
-
-        Route::get('role/index', 'Admin\RoleController@index');
-        Route::post('role/create', 'Admin\RoleController@create');
-        Route::post('role/update', 'Admin\RoleController@update');
-        Route::get('role/delete', 'Admin\RoleController@delete');
-        Route::get('role/permission', 'Admin\RoleController@getPermission');
-        Route::post('role/setPermission', 'Admin\RoleController@setPermission');
-        Route::get('role/getUsers', 'Admin\RoleController@getUsers');
-        Route::post('role/bindUsers', 'Admin\RoleController@bindUsers');
-
-        Route::get('user/index', 'Admin\UserController@index');
-        Route::get('user/getRoles', 'Admin\UserController@getRoles');
-        Route::post('user/create', 'Admin\UserController@create');
-        Route::post('user/update', 'Admin\UserController@update');
-        Route::get('user/updateStatus', 'Admin\UserController@updateStatus');
-        Route::get('user/permission', 'Admin\UserController@getPermission');
-        Route::post('user/setPermission', 'Admin\UserController@setPermission');
+//上传处理
+Route::group(['middleware' => ['cors']], function () {
+    Route::post('/uploadFiles', function(\App\Services\UploadService $service){
+        return $service->uploadFiles();
     });
 });
+
+//后台管理系统路由
+Route::any('admin/loginCenter', 'Admin\LoginController@login');
+Route::group(['namespace' => 'Admin'], function () {
+    Route::group(['middleware' => ['api', 'multiauth:admin']], function () {
+        Route::any('admin/user', 'UserController@user');
+        Route::any('admin/menu', 'UserController@menu');
+        Route::any('user/updatePassword', 'UserController@updatePassword');
+        Route::group(['middleware' => ['permission']], function () {
+            //菜单管理
+            Route::get('menu/index', 'MenuController@index');
+            Route::post('menu/create', 'MenuController@create');
+            Route::post('menu/update', 'MenuController@update');
+            Route::get('menu/delete', 'MenuController@delete');
+
+            //角色管理
+            Route::get('role/index', 'RoleController@index');
+            Route::post('role/create', 'RoleController@create');
+            Route::post('role/update', 'RoleController@update');
+            Route::get('role/delete', 'RoleController@delete');
+            Route::get('role/permission', 'RoleController@getPermission');
+            Route::post('role/setPermission', 'RoleController@setPermission');
+            Route::get('role/getUsers', 'RoleController@getUsers');
+            Route::post('role/bindUsers', 'RoleController@bindUsers');
+
+            //后台用户
+            Route::get('user/index', 'UserController@index');
+            Route::get('user/getRoles', 'UserController@getRoles');
+            Route::post('user/create', 'UserController@create');
+            Route::post('user/update', 'UserController@update');
+            Route::get('user/updateStatus', 'UserController@updateStatus');
+            Route::get('user/permission', 'UserController@getPermission');
+            Route::post('user/setPermission', 'UserController@setPermission');
+        });
+    });
+});
+
+
+
 

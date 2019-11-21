@@ -65,5 +65,6 @@ class Kernel extends HttpKernel
         'multiauth' => \SMartins\PassportMultiauth\Http\Middleware\MultiAuthenticate::class,
         'permission'=> \App\Http\Middleware\Permission::class,
         'wechat.oauth' => \Overtrue\LaravelWeChat\Middleware\OAuthAuthenticate::class,
+        'cors' => \App\Http\Middleware\Cors::class,
     ];
 }

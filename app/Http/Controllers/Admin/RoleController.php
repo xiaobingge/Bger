@@ -12,10 +12,10 @@ use App\Admin;
 class RoleController extends Controller
 {
 
+    //角色列表
     public function index()
     {
-        $roles = Role::get();
-        return ['code'=>1000,'data'=>$roles];
+        return success(Role::get());
     }
 
     public function create(Request $request)
@@ -24,12 +24,12 @@ class RoleController extends Controller
         $guard_name  = $app['auth']->getDefaultDriver();
         $name = $request->input('name');
         if(empty($name))
-            return ['code'=>1001,'msg'=>'角色名称不能为空'];
+            return error(1001,'角色名称不能为空');
         $role = Role::where(['name'=>$name,'guard_name'=>$guard_name])->first();
         if($role)
-            return ['code'=>1002,'msg'=>'角色名称已存在'];
+            return error(1002,'角色名称已存在');
         $role = Role::create(['name'=>$name,'guard_name'=>$guard_name]);
-        return ['code'=>1000,'data'=>$role];
+        return success($role);
     }
 
     public function update(Request $request)
@@ -37,23 +37,23 @@ class RoleController extends Controller
         $name = $request->input('name');
         $id = $request->input('id');
         if(empty($name))
-            return ['code'=>1001,'msg'=>'角色名称不能为空'];
+            return error(1001,'角色名称不能为空');
         if(empty($id))
-            return ['code'=>1001,'msg'=>'ID不能为空'];
+            return error(1002,'ID不能为空');
         $role = Role::where(['id'=>$id])->first();
         if($role->name == $name)
-            return ['code'=>1003,'msg'=>'无更新内容'];
+            return error(1003,'无更新内容');
         Role::where(['id'=>$id])->update(['name'=>$name]);
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
 
     public function delete(Request $request)
     {
         $id = $request->input('id');
         if(empty($id))
-            return ['code'=>1001,'msg'=>'ID不能为空'];
+            return error(1001,'ID不能为空');
         Role::where(['id'=>$id])->delete();
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
 
     public function getPermission(Request $request)
@@ -61,7 +61,7 @@ class RoleController extends Controller
         $data = [];
         $role_id =  $request->input('id',0);
         if(empty($role_id))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         $role = Role::findById($role_id);
         $menu = Menus::get();
         $arr = $top = [];
@@ -95,14 +95,14 @@ class RoleController extends Controller
             }
             $data[]  = $dd;
         }
-        return ['code'=>1000,'data'=>$data];
+        return success($data);
     }
 
     public function setPermission(Request $request){
         $role_id =  $request->input('role_id',0);
         $ids = $request->input('ids');
         if(empty($role_id))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         $role = Role::findById($role_id);
         if(!empty($ids)){
             $menu = Menus::whereIn('id',$ids)->get();
@@ -121,16 +121,16 @@ class RoleController extends Controller
                 }
             }
             if($i == 0)
-                return ['code'=>1002,'msg'=>'请至少选择一个权限'];
+                return error(1002,'请至少选择一个权限');
         }
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
 
     public function getUsers(Request $request){
         $data = [];
         $role_id =  $request->input('id',0);
         if(empty($role_id))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         $role = Role::findById($role_id);
         $users = Admin::get();
         foreach($users as $key=>$value){
@@ -139,14 +139,14 @@ class RoleController extends Controller
                 $data['binds'][] = $value->id;
             }
         }
-        return ['code'=>1000,'data'=>$data];
+        return success($data);
     }
 
     public function bindUsers(Request $request){
         $role_id =  $request->input('id',0);
         $uids = $request->input('uids');
         if(empty($role_id))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         $role = Role::findById($role_id);
         $users = Admin::role($role->name)->get();
         $bind = $r_bind =  $unbind = [];
@@ -169,7 +169,7 @@ class RoleController extends Controller
                     $unbind[] = $v->id;
                 }
             }else{
-                return ['code'=>1001,'msg'=>'请选择一个用户授权'];
+                return error(1002,'请选择一个用户授权');
             }
         }
         if(!empty($unbind)){
@@ -184,7 +184,7 @@ class RoleController extends Controller
                 $v->assignRole($role->name);
             }
         }
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
 
 }

@@ -42,7 +42,7 @@ class MenuController extends Controller
             $item['name'] = $v->menu_name;
             $tree[] = $item;
         }
-        return ['code'=>1000,'msg'=>'success','data'=>['total'=>$count,'items'=>$list,'tree'=>$tree]];
+        return success(['total'=>$count,'items'=>$list,'tree'=>$tree]);
     }
 
     //添加菜单
@@ -56,15 +56,15 @@ class MenuController extends Controller
         $data['guard_name'] = $app['auth']->getDefaultDriver();
         $menu_1 = Menus::where(['uri'=>$data['uri']])->first();
         if($menu_1)
-            return ['code'=>1001,'msg'=>'路由地址已存在'];
+            return error(1001,'路由地址已存在');
         //创建权限点
         $permission = Permission::where(['name' => $data['permission_name'], 'guard_name' => $data['guard_name']])->first();
         if($permission){
-            return ['code'=>1001,'msg'=>'权限标识已存在'];
+            return error(1002,'权限标识已存在');
         }
         Permission::create(['name'=>$data['permission_name'],'guard_name'=>$data['guard_name']]);
         $id = Menus::insertGetId($data);
-        return ['code'=>1000,'msg'=>'success','data'=>['id'=>$id]];
+        return success(['id'=>$id]);
     }
 
     //编辑菜单
@@ -82,13 +82,13 @@ class MenuController extends Controller
         if($menu->uri != $data['uri']){
             $menu_1 = Menus::where(['uri'=>$data['uri']])->first();
             if($menu_1)
-                return ['code'=>1001,'msg'=>'路由地址已存在'];
+                return error(1001,'路由地址已存在');
         }
         if($menu->permission_name != $data['permission_name']){
-            return ['code'=>1001,'msg'=>'权限标识不可修改'];
+            return error(1002,'权限标识不可修改');
         }
         Menus::where(['id'=>$id])->update($data);
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
 
     //删除菜单
@@ -99,14 +99,15 @@ class MenuController extends Controller
         $app = app();
         $guard_name = $app['auth']->getDefaultDriver();
         if(empty($id) || !in_array($type,[1,2,3]))
-            return ['code'=>1001,'msg'=>'参数丢失'];
+            return error(1001,'参数丢失');
         $flag = $this->deleteMenus($id,$guard_name);
         if($flag)
-            return ['code'=>1000,'msg'=>'success'];
+            return success();
         else
-            return ['code'=>1002,'msg'=>'参数错误'];
+            return error(1002,'参数错误');
     }
 
+    //递归处理
     private function deleteMenus($id,$guard_name)
     {
         $menu = Menus::where(['id'=>$id])->first();

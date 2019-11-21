@@ -44,7 +44,7 @@ class UserController extends Controller
             $value->roles = $value->hasAllRoles(Role::all());
             $value->apps = !empty($value->app_ids) ? Apps::whereIn('id',explode(',',$value->app_ids))->get() : '';
         }
-        return ['code'=>1000,'data'=>['items'=>$users,'total'=>$count]];
+        return success(['items'=>$users,'total'=>$count]);
     }
 
     public function create(Request $request)
@@ -66,7 +66,7 @@ class UserController extends Controller
             }else{
                 $msg = $error['password'];
             }
-            return ['code'=>1001,'msg'=>$msg];
+            return error(1001,$msg);
         }else{
             //应用处理
             $app_ids = $request->input('selected_app_ids');
@@ -82,7 +82,7 @@ class UserController extends Controller
             if(!empty($role_ids)){
                 $res->syncRoles($role_ids);
             }
-            return ['code'=>1000,'data'=>$res];
+            return success($res);
         }
     }
 
@@ -96,7 +96,7 @@ class UserController extends Controller
         if(empty($role_ids)){
             $roles = $user->getRoleNames();
             if(false === $roles){
-                return ['code'=>1001,'msg'=>'请选择一个角色'];
+                return error(1001,'请选择一个角色');
             }else{
                 foreach($roles as $k=>$v){
                     $user->removeRole($v);
@@ -106,26 +106,26 @@ class UserController extends Controller
             $user->syncRoles($role_ids);
         }
         $user->apps = !empty($app_ids) ? Apps::whereIn('id',$app_ids)->get() : '';
-        return ['code'=>1000,'data'=>$user];
+        return success($user);
     }
 
     //删除数据处理
     public function delete(Request $request){
         $id = $request->input('id');
         if(empty($id))
-            return ['code'=>1001,'msg'=>'参数丢失'];
+            return error(1001,'参数丢失');
         $user = Admin::where(['id'=>$id])->first();
         if(empty($user->id))
-            return ['code'=>1002,'msg'=>'用户不存在'];
+            return error(1002,'用户不存在');
         if(in_array($user->name,config('auth.administrators')))
-            return ['code'=>1003,'msg'=>'系統用戶不能刪除'];
+            return error(1003,'系統用戶不能刪除');
         //角色清空
         $user->syncRoles([]);
         //权限清空
         $user->syncPermissions([]);
         //删除用户
         Admin::where(['id'=>$id])->delete();
-        return ['code'=>1000];
+        return success();
     }
 
     public function getPermission(Request $request)
@@ -133,7 +133,7 @@ class UserController extends Controller
         $data = [];
         $uid =  $request->input('id',0);
         if(empty($uid))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         $user = Admin::find($uid);
         $menu = Menus::get();
         $arr = $top = [];
@@ -168,14 +168,14 @@ class UserController extends Controller
             }
             $data[]  = $dd;
         }
-        return ['code'=>1000,'data'=>$data];
+        return success($data);
     }
 
     public function setPermission(Request $request){
         $uid =  $request->input('uid',0);
         $ids = $request->input('ids');
         if(empty($uid))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         $user = Admin::find($uid);
         if(!empty($ids)){
             $menu = Menus::whereIn('id',$ids)->get();
@@ -191,31 +191,31 @@ class UserController extends Controller
                     $user->revokePermissionTo($v->name);
                 }
             }else{
-                return ['code'=>1002,'msg'=>'请至少选择一个权限'];
+                return error(1002,'请至少选择一个权限');
             }
         }
-        return ['code'=>1000];
+        return success();
     }
-
+    //锁定用户
     public function updateStatus(Request $request)
     {
         $uid =  $request->input('id',0);
         $type = $request->input('type',0);
         if(empty($uid) || !in_array($type,[0,1]))
-            return ['code'=>1001,'msg'=>'参数缺失'];
+            return error(1001,'参数缺失');
         Admin::where(['id'=>$uid])->update(['status'=>$type]);
         //删除token
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
 
-
+    //修改密码
     public function updatePassword(Request $request){
         $user =  $request->user();
         $password = $request->input('password','');
         if(empty($password))
-            return ['code'=>1001,'msg'=>'参数错误'];
+            return error(1001,'参数错误');
         Admin::where(['id'=>$user->id])->update(['password'=> Hash::make($password)]);
-        return ['code'=>1000,'msg'=>'success'];
+        return success();
     }
     //获取用户信息
     public function user(Request $request)
@@ -225,7 +225,7 @@ class UserController extends Controller
         $user['introduction'] = "程序员一枚";
         $user['roles'] = ['edit'];
         $user['apps'] = !empty($user->app_ids) ? Apps::whereIn('id',explode(',',$user->app_ids))->get() : '';
-        return ['code'=>1000,'msg'=>'success','data'=>$user];
+        return success($user);
     }
 
     //获取权限菜单
@@ -264,7 +264,7 @@ class UserController extends Controller
             if(empty($v['children']))
                 unset($menu[$k]);
         }
-        return ['code'=>1000,'msg'=>'success','data'=>array_values($menu)];
+        return success(array_values($menu));
     }
 
     //获取角色
@@ -272,7 +272,7 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $apps = Apps::where(['status'=>1])->get();
-        return ['code'=>1000,'msg'=>'success','data'=>['roles'=>$roles,'apps'=>$apps]];
+        return success(['roles'=>$roles,'apps'=>$apps]);
     }
 
 }
