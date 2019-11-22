@@ -90,8 +90,9 @@ class UserController extends Controller
         $uid = $request->input('id');
         $role_ids = $request->input('selected_ids');
         $app_ids = $request->input('selected_app_ids');
+        $avatar = $request->input('avatar');
         $app_str = !empty($app_ids) ? implode(',',$app_ids) : '';
-        Admin::where(['id'=>$uid])->update(['app_ids'=>$app_str]);
+        Admin::where(['id'=>$uid])->update(['app_ids'=>$app_str,'avatar'=>$avatar]);
         $user = Admin::find($uid);
         if(empty($role_ids)){
             $roles = $user->getRoleNames();
@@ -221,9 +222,6 @@ class UserController extends Controller
     public function user(Request $request)
     {
         $user =  $request->user();
-        $user['avatar'] = "https://avatars2.githubusercontent.com/u/26640264?s=460&v=4";
-        $user['introduction'] = "程序员一枚";
-        $user['roles'] = ['edit'];
         $user['apps'] = !empty($user->app_ids) ? Apps::whereIn('id',explode(',',$user->app_ids))->get() : '';
         return success($user);
     }

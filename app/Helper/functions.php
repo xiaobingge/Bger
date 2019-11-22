@@ -1,15 +1,25 @@
 <?php
 /**
- * 获取原图地址
+ * 获取阿里云原图地址
  * @param $path
  * @return string
  */
-function getImageUrl($path){
+function getOssImageUrl($path){
 
     return strpos($path, '//') === 0 || strpos($path, 'http') === 0 ? $path : env('UPLOAD_DOMAIN') . $path;
 
 }
 
+/*
+ * 获取本地图片地址
+ */
+function getImageUrl($path){
+    return strpos($path, '//') === 0 || strpos($path, 'http') === 0 ? $path : env('APP_URL').'/storage'. $path;
+}
+
+/*
+ * 计算时间差
+ */
 function timeDiff($startTime, $endTime)
 {
     if ($startTime > $endTime) {
