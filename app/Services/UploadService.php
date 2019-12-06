@@ -12,7 +12,6 @@ class UploadService {
     const DRIVER_ALIOSS = 'AliOss';
 
 
-
     public function __construct(Request $request)
     {
         $this->request = $request;

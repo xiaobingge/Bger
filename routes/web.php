@@ -26,6 +26,22 @@ Route::group(['middleware' => ['cors']], function () {
     });
 });
 
+//工具
+
+Route::post('/tools', function(\App\Services\ToolsService $service){
+    return $service->index();
+});
+//H5页面地址
+Route::get('page/index', 'H5Controller@index');
+
+
+Route::any('wechat/index', 'WeChatController@index');
+//微信授权
+Route::group(['middleware' => ['web', 'wechat.oauth']], function () {
+    Route::get('wechat/auth', 'WeChatController@authLogin');
+});
+
+
 //后台管理系统路由
 Route::any('admin/loginCenter', 'Admin\LoginController@login');
 Route::group(['namespace' => 'Admin'], function () {
@@ -34,6 +50,7 @@ Route::group(['namespace' => 'Admin'], function () {
         Route::any('admin/menu', 'UserController@menu');
         Route::any('user/updatePassword', 'UserController@updatePassword');
         Route::group(['middleware' => ['permission']], function () {
+
             //菜单管理
             Route::get('menu/index', 'MenuController@index');
             Route::post('menu/create', 'MenuController@create');
@@ -58,6 +75,15 @@ Route::group(['namespace' => 'Admin'], function () {
             Route::get('user/updateStatus', 'UserController@updateStatus');
             Route::get('user/permission', 'UserController@getPermission');
             Route::post('user/setPermission', 'UserController@setPermission');
+
+            //自定义菜单
+            Route::get('wechat/getmenus', 'WechatController@getMenus');
+            Route::post('wechat/setmenus', 'WechatController@setMenus');
+            Route::get('wechat/getmaterial', 'WechatController@getMaterial');
+//            Route::any('wechat/setmaterial', 'WechatController@setMaterial');
+            Route::post('wechat/sysmaterial', 'WechatController@sysMaterial');
+            Route::get('wechat/selectmaterial', 'WechatController@selectMaterial');
+
         });
     });
 });

@@ -17,6 +17,18 @@ function getImageUrl($path){
     return strpos($path, '//') === 0 || strpos($path, 'http') === 0 ? $path : env('APP_URL').'/storage'. $path;
 }
 
+//hashids 加密
+function hashEncrypt($id,$secret='',$length=8){
+    $hashids = new Hashids\Hashids($secret,$length);
+    return $hashids->encode($id);
+}
+
+//hashids 解密
+function hashDecrypt($str,$secret='',$length=8){
+    $hashids = new Hashids\Hashids($secret,$length);
+    return $hashids->decode($str);
+}
+
 /*
  * 计算时间差
  */
