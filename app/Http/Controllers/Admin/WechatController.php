@@ -26,7 +26,8 @@ class WechatController extends Controller{
             $list = $this->app->menu->list();
             Cache::put($this->menu_key,$list,60);
         }
-        return success($list['menu']);
+        $data = !empty($list['menu']) ? $list['menu'] : ['button'=>[]];
+        return success($data);
     }
 
     //自定义菜单
