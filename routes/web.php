@@ -84,6 +84,16 @@ Route::group(['namespace' => 'Admin'], function () {
             Route::post('wechat/sysmaterial', 'WechatController@sysMaterial');
             Route::get('wechat/selectmaterial', 'WechatController@selectMaterial');
 
+            //自动回复
+            Route::get('reply/getReply', 'ReplyController@getReply');
+            Route::get('reply/getReplyDetail', 'ReplyController@getReplyDetail');
+            Route::post('reply/handleReply', 'ReplyController@handleReply');
+            Route::get('reply/deleteReply', 'ReplyController@deleteReply');
+            Route::get('reply/getRules', 'ReplyController@getRules');
+            Route::post('reply/handleRule', 'ReplyController@handleRule');
+            Route::get('reply/deleteRule', 'ReplyController@deleteRule');
+
+
         });
     });
 });
