@@ -25,6 +25,7 @@ class WeChatController extends  Controller
         $config = config('wechat.official_account.default');
         $app = Factory::officialAccount($config);
         $app->server->push(TextMessageHandler::class, Message::TEXT); // 文本消息
+        $app->server->push(EventMessageHandler::class,Message::EVENT);
         $response = $app->server->serve();
         return $response;
     }

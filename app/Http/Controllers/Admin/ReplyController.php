@@ -82,25 +82,32 @@ class ReplyController extends Controller{
     }
     //查询规则
     public function getRules(Request $request){
-        $rules = Rules::get();
+        $name = $request->input('name');
+        $page = $request->input('page',1);
+        $limit = $request->input('limit',10);
+        $obj = Rules::query();
+        if(!empty($name))
+            $obj->where(['name'=>$name]);
+        $count = $obj->count();
+        $obj->orderBy('id', 'desc')->offset(($page-1)*$limit)->limit($limit);
+        $rules = $obj->get();
         foreach($rules as $key=>$value){
             $reply = Reply::where(['rule_id'=>$value->id])->get();
             $value->list = $reply;
-            $a = $b = 0;
-            foreach($reply as $k=>$v){
-                if($v->type == 1)
-                    $a += 1;
-                if($v->type == 2)
-                    $b += 1;
-            }
-            if($a > 0)
-                $value->remark = $a.'个文本';
-            if($b > 0)
-                $value->remark .=  $a > 0 ? ','.$b.'个图片' : $b.'个图片';
+            $value->remark = $this->getRemark($reply);
         }
-        return success($rules);
+        return success(['total'=>$count,'items'=>$rules]);
     }
 
+    //删除规则
+    public function deleteRule(Request $request){
+        $id = $request->input('id');
+        if(empty($id))
+            return error(1001,'参数错误');
+        Reply::where(['rule_id'=>$id])->delete();
+        Rules::where(['id'=>$id])->delete();
+        return success();
+    }
     //添加规则
     public function handleRule(Request $request){
         $id = $request->input('id');
@@ -119,6 +126,7 @@ class ReplyController extends Controller{
                         $value['rule_id'] = $rule->id;
                         $this->saveReply($value);
                     }
+                    $rule->remark = $this->getRemark($list);
                 }
             }
             return success($rule);
@@ -135,9 +143,31 @@ class ReplyController extends Controller{
                     $value['rule_id'] = $id;
                     $this->saveReply($value);
                 }
+                $remark = $this->getRemark($list);
+            }else{
+                $remark = '';
             }
-            return success();
+            return success(['qr_code'=>!empty($qr_code) ? $qr_code : $rule->qr_code,'remark'=>$remark]);
         }
+    }
+
+    private function getRemark($reply){
+        if(is_object($reply))
+            $reply = $reply->toArray();
+        $a = $b = 0;
+        foreach($reply as $k=>$v){
+            if($v['type'] == 1)
+                $a += 1;
+            if($v['type'] == 2)
+                $b += 1;
+        }
+        $remark = '';
+        if($a > 0)
+            $remark .= $a.'个文本';
+        if($b > 0)
+            $remark .=  $a > 0 ? ','.$b.'个图片' : $b.'个图片';
+
+        return $remark;
     }
 
     //上传图片素材
