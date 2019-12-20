@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use EasyWeChat\Factory;
 use EasyWeChat\Kernel\Messages\Message;
 use App\Services\Wechat\TextMessageHandler;
+use App\Services\Wechat\EventMessageHandler;
 
 class WeChatController extends  Controller
 {
