@@ -25,7 +25,8 @@ class EventMessageHandler implements  EventHandlerInterface
             $rule_id = 0;
             if(!empty($this->message['EventKey'])){ //二维码扫描关注
                 $arr = explode('_',$this->message['EventKey']);
-                $rule = Rules::where(['keyword'=>$arr[1]])->first();
+                $keyword = $this->message['Event'] == 'subscribe' ? $arr[1] : $this->message['EventKey'];
+                $rule = Rules::where(['keyword'=>$keyword])->first();
                 if(!empty($rule->id))
                     $rule_id = $rule->id;
             }
