@@ -41,7 +41,7 @@ class EventMessageHandler implements  EventHandlerInterface
                         }
                     }
                     if(!empty($items)){
-                        if($rule->reply_model == 1){ //全部回复
+                        if($rule->reply_mode == 1){ //全部回复
                             $config = config('wechat.official_account.default');
                             $app = Factory::officialAccount($config);
                             foreach($items as $msg ){
