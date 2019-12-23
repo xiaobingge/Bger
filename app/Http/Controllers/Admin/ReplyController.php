@@ -6,6 +6,7 @@ use App\Models\Reply;
 use App\Models\Rules;
 use EasyWeChat\Factory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReplyController extends Controller{
 
@@ -82,10 +83,13 @@ class ReplyController extends Controller{
     }
     //查询规则
     public function getRules(Request $request){
+        $type = $request->input('type',1);
         $name = $request->input('name');
         $page = $request->input('page',1);
         $limit = $request->input('limit',10);
         $obj = Rules::query();
+        if(!empty($type))
+            $obj->where(['type'=>$type]);
         if(!empty($name))
             $obj->where(['name'=>$name]);
         $count = $obj->count();
@@ -111,15 +115,29 @@ class ReplyController extends Controller{
     //添加规则
     public function handleRule(Request $request){
         $id = $request->input('id');
+        $type = $request->input('type',1);
         $name = $request->input('name');
         $keyword = $request->input('keyword');
+        $reply_mode = $request->input('reply_mode',1);
+        $match = $request->input('match',1);
         $list = $request->input('list');
         if(empty($name) || empty($keyword))
             return error(1001,'参数不能为空');
+        if(!in_array($type,[1,2]))
+            return error(1002,'参数错误');
+        $is_exist = Rules::where(['keyword'=>$keyword])->get();
         if(empty($id)){
-            //创建二维码
-            $qr_code = $this->createQrCode($keyword);
-            $rule = Rules::create(['name'=>$name,'keyword'=>$keyword,'qr_code'=>$qr_code]);
+            if($type == 1){
+                if(!$is_exist->isEmpty())
+                    return error(1003,'二维码标识已存在');
+                //创建二维码
+                $qr_code = $this->createQrCode($keyword);
+                $rule = Rules::create(['name'=>$name,'keyword'=>$keyword,'qr_code'=>$qr_code,'reply_mode'=>$reply_mode]);
+            }else{
+                if(!$is_exist->isEmpty())
+                    return error(1003,'关键词已存在');
+                $rule = Rules::create(['name'=>$name,'type'=>$type,'keyword'=>$keyword,'match'=>$match,'reply_mode'=>$reply_mode]);
+            }
             if($rule->id > 0){
                 if(!empty($list)){
                     foreach($list as $key => $value){
@@ -132,11 +150,15 @@ class ReplyController extends Controller{
             return success($rule);
         }else{
             $rule = Rules::where(['id'=>$id])->first();
-            if($keyword != $rule->keyword){
-                $qr_code = $this->createQrCode($keyword);
-                Rules::where(['id'=>$id])->update(['name'=>$name,'keyword'=>$keyword,'qr_code'=>$qr_code]);
+            if($type == 1){
+                if($keyword != $rule->keyword){
+                    $qr_code = $this->createQrCode($keyword);
+                    Rules::where(['id'=>$id])->update(['name'=>$name,'keyword'=>$keyword,'qr_code'=>$qr_code]);
+                }else{
+                    Rules::where(['id'=>$id])->update(['name'=>$name]);
+                }
             }else{
-                Rules::where(['id'=>$id])->update(['name'=>$name]);
+                Rules::where(['id'=>$id])->update(['name'=>$name,'keyword'=>$keyword,'match'=>$match,'reply_mode'=>$reply_mode]);
             }
             if(!empty($list)){
                 foreach($list as $key => $value){
@@ -193,10 +215,7 @@ class ReplyController extends Controller{
         $content = file_get_contents($url); // 得到二进制图片内容
         // 临时文件
         $uploadFileName = '/images/'.date('Ymd').'/'.md5(time()).'.jpg';
-        file_put_contents(storage_path('app/public').$uploadFileName, $content); // 写入文件
-//        $ossKey = 'mashu/'.date('Ymd/His').'/'.md5(time().rand(1,9999)).'.jpg';
-//        $oss->uploadFile('',$ossKey,$tmpfname);
-
+        Storage::disk('public')->put($uploadFileName, $content);
         return $uploadFileName;
     }
 

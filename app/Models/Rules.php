@@ -6,6 +6,6 @@ class Rules extends Model{
 
     protected $table = "rules";
 
-    protected $fillable = ['name','keyword','qr_code'];
+    protected $fillable = ['name','type','keyword','qr_code','match','reply_mode'];
 
 }

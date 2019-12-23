@@ -8,6 +8,11 @@
 namespace App\Services\Wechat;
 
 use \EasyWeChat\Kernel\Contracts\EventHandlerInterface;
+use App\Models\Rules;
+use App\Models\Reply;
+use EasyWeChat\Kernel\Messages\Text;
+use EasyWeChat\Kernel\Messages\Image;
+use EasyWeChat\Factory;
 
 class TextMessageHandler implements  EventHandlerInterface
 {
@@ -17,10 +22,40 @@ class TextMessageHandler implements  EventHandlerInterface
     {
         $this->message=$payload;
         // TODO: Implement handle() method.
-        if(preg_match('/^[0-9A-Z]{8}+$/',$this->message['Content'])){
-            return '';
+        //全匹配查询
+        $rule = Rules::where(['keyword'=>$this->message['Content']])->first();
+        if(empty($rule->id)){
+            //半匹配查询
+            $rule = Rules::where('keyword','like',$this->message['Content'].'%')->first();
         }
-        return '';
+        if(!empty($rule->id)){
+            $rule_id = $rule->id;
+            $reply = Reply::where(['rule_id'=>$rule_id])->orderBy('id','asc')->get();
+            if(!$reply->isEmpty()){
+                $items = [];
+                foreach($reply as $key=>$value){
+                    if($value->type == 1){
+                        $items[] =  new Text($value->content);
+                    }elseif($value->type == 2){
+                        $items[] =  new Image($value->media_id);
+                    }
+                }
+                if(!empty($items)){
+                    if($rule->reply_model == 1){ //全部回复
+                        $config = config('wechat.official_account.default');
+                        $app = Factory::officialAccount($config);
+                        foreach($items as $msg ){
+                            $app->customer_service->message($msg)->to($this->message['FromUserName'])->send();
+                            sleep(1);
+                        }
+                    }else{   //随机回复一条
+                        $mod = array_rand($items);
+                        return $items[$mod];
+                    }
+
+                }
+            }
+        }
     }
 
 }

@@ -50,13 +50,13 @@ class UploadService {
 
     //上传到服务器
     protected function uploadToDir($uploadFileName,$realPath,$type,$is_water=0){
-        $img = Image::make($realPath);
-        if($type == self::TYPE_AVATAR)
-            $img->resize(100,100);
-        if($is_water == 1)
-            $img->insert('./logo.png', 'bottom-right', 15, 10);
-        return $img->save(config('filesystems.disks.public.root').'/'.$uploadFileName);
-        //return Storage::disk('public')->put($uploadFileName, file_get_contents($realPath));
+//        $img = Image::make($realPath);
+//        if($type == self::TYPE_AVATAR)
+//            $img->resize(100,100);
+//        if($is_water == 1)
+//            $img->insert('./logo.png', 'bottom-right', 15, 10);
+        //return $img->save(config('filesystems.disks.public.root').'/'.$uploadFileName);
+        return Storage::disk('public')->put($uploadFileName, file_get_contents($realPath));
     }
 
 
