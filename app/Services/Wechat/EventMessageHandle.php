@@ -25,7 +25,7 @@ class EventMessageHandler implements  EventHandlerInterface
         $this->message=$payload;
         if(in_array($this->message['Event'],['subscribe','SCAN'])){
             $rule_id = 0;
-            $rule = new class{};
+            $rule = false;
             if(!empty($this->message['EventKey'])) { //二维码扫描关注
                 $arr = explode('_', $this->message['EventKey']);
                 $keyword = $this->message['Event'] == 'subscribe' ? $arr[1] : $this->message['EventKey'];
@@ -42,7 +42,7 @@ class EventMessageHandler implements  EventHandlerInterface
                     }elseif($value->type == 2){
                         $items[] =  new Image($value->media_id);
                     }elseif($value->type == 3){
-                        $items[]  = new Media($value->media_id, 'mpnews' );
+                        $items[]  = new Media($value->media_id, 'mpnews');
                     }
                 }
                 if(!empty($items)){
@@ -62,7 +62,7 @@ class EventMessageHandler implements  EventHandlerInterface
 
                 }
             }
-            
+
         }
 
     }
