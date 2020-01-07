@@ -25,6 +25,7 @@ class EventMessageHandler implements  EventHandlerInterface
         $this->message=$payload;
         if(in_array($this->message['Event'],['subscribe','SCAN'])){
             $rule_id = 0;
+            $rule = new class{};
             if(!empty($this->message['EventKey'])) { //二维码扫描关注
                 $arr = explode('_', $this->message['EventKey']);
                 $keyword = $this->message['Event'] == 'subscribe' ? $arr[1] : $this->message['EventKey'];
@@ -32,7 +33,7 @@ class EventMessageHandler implements  EventHandlerInterface
                 if (!empty($rule->id))
                     $rule_id = $rule->id;
             }
-            $reply = Reply::where(['rule_id'=>$rule_id])->orderBy('id','asc')->get();
+            $reply = Reply::where(['rule_id' => $rule_id])->orderBy('id', 'asc')->get();
             if(!$reply->isEmpty()){
                 $items = [];
                 foreach($reply as $key=>$value){
@@ -47,7 +48,7 @@ class EventMessageHandler implements  EventHandlerInterface
                 if(!empty($items)){
                     $config = config('wechat.official_account.default');
                     $app = Factory::officialAccount($config);
-                    if($rule->reply_mode == 1){ //全部回复
+                    if(($rule && $rule->reply_mode == 1) || empty($this->message['EventKey'])){ //全部回复
                         foreach($items as $msg ){
                             $app->customer_service->message($msg)->to($this->message['FromUserName'])->send();
                             sleep(1);
@@ -61,8 +62,7 @@ class EventMessageHandler implements  EventHandlerInterface
 
                 }
             }
-
-
+            
         }
 
     }
