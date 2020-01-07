@@ -80,7 +80,7 @@ class WechatController extends Controller{
     {
         $media_id = $request->input('media_id');
         $items = News::where(['media_id'=>$media_id])->first();
-        $items['content'] = \GuzzleHttp\json_decode($items['content'],true);
+        $items['content'] = \GuzzleHttp\json_decode($items->content,true);
         return success($items);
     }
 

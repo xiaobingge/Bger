@@ -31,6 +31,7 @@ Route::group(['middleware' => ['cors']], function () {
 Route::post('/tools', function(\App\Services\ToolsService $service){
     return $service->index();
 });
+
 //H5页面地址
 Route::get('page/index', 'H5Controller@index');
 

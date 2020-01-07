@@ -13,6 +13,7 @@ use \EasyWeChat\Kernel\Contracts\EventHandlerInterface;
 use EasyWeChat\Kernel\Messages\Text;
 use EasyWeChat\Kernel\Messages\Image;
 use EasyWeChat\Factory;
+use EasyWeChat\Kernel\Messages\Media;
 
 class EventMessageHandler implements  EventHandlerInterface
 {
@@ -38,6 +39,8 @@ class EventMessageHandler implements  EventHandlerInterface
                             $items[] =  new Text($value->content);
                         }elseif($value->type == 2){
                             $items[] =  new Image($value->media_id);
+                        }elseif($value->type == 3){
+                            $items[] = new Media($value->media_id,'mpnews');
                         }
                     }
                     if(!empty($items)){

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Reply;
 use App\Models\Rules;
+use App\Models\News;
 use EasyWeChat\Factory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,15 @@ class ReplyController extends Controller{
     public function getReply(Request $request){
         $rule_id = $request->input('rule_id',0);
         $list = Reply::where(['rule_id'=>$rule_id])->get();
+        if(!$list->isEmpty()){
+            foreach($list as $k=>&$v){
+                if($v->type == 3){
+                    $items = News::where(['media_id'=>$v->content])->first();
+                    if($items->id)
+                        $v->items = \GuzzleHttp\json_decode($items->content,true);
+                }
+            }
+        }
         return success($list);
     }
 
@@ -33,7 +43,7 @@ class ReplyController extends Controller{
         $type = $request->input('type');
         $content = $request->input('content');
         $rule_id = $request->input('rule_id') > 0 ? $request->input('rule_id') : 0;
-        if(!in_array($type,[1,2]))
+        if(!in_array($type,[1,2,3]))
             return error(1001,'回复类型错误');
         if(empty($content))
             return error(1002,'回复内容为空');
@@ -49,6 +59,10 @@ class ReplyController extends Controller{
                         return error(1002,'图片素材上传失败');
                     Reply::create(['rule_id'=>$rule_id,'type'=>$type,'content'=>$content,'media_id'=>$media_id]);
                     break;
+                case 3:
+                    Reply::create(['rule_id'=>$rule_id,'type'=>$type,'content'=>$content,'media_id'=>$content]);
+                    break;
+
             }
         }else{
             //编辑回复
@@ -66,6 +80,9 @@ class ReplyController extends Controller{
                     if($media_id === false)
                         return error(1002,'图片素材上传失败');
                     Reply::where(['id'=>$id])->update(['rule_id'=>$rule_id,'type'=>$type,'content'=>$content,'media_id'=>$media_id]);
+                    break;
+                case 3:
+                    Reply::where(['id'=>$id])->update(['rule_id'=>$rule_id,'type'=>$type,'content'=>$content,'media_id'=>$content]);
                     break;
             }
         }
@@ -97,6 +114,13 @@ class ReplyController extends Controller{
         $rules = $obj->get();
         foreach($rules as $key=>$value){
             $reply = Reply::where(['rule_id'=>$value->id])->get();
+            foreach($reply as $k=>&$v){
+                if($v->type == 3){
+                    $items = News::where(['media_id'=>$v->content])->first();
+                    if($items->id)
+                        $v->items = \GuzzleHttp\json_decode($items->content,true);
+                }
+            }
             $value->list = $reply;
             $value->remark = $this->getRemark($reply);
         }
@@ -176,18 +200,23 @@ class ReplyController extends Controller{
     private function getRemark($reply){
         if(is_object($reply))
             $reply = $reply->toArray();
-        $a = $b = 0;
+        $a = $b = $c =  0;
         foreach($reply as $k=>$v){
             if($v['type'] == 1)
                 $a += 1;
             if($v['type'] == 2)
                 $b += 1;
+            if($v['type'] == 3)
+                $c += 1;
+
         }
         $remark = '';
         if($a > 0)
             $remark .= $a.'个文本';
         if($b > 0)
             $remark .=  $a > 0 ? ','.$b.'个图片' : $b.'个图片';
+        if($c > 0)
+            $remark .=  $a > 0 || $b > 0 ? ','.$c.'个图文' : $c.'个图文';
 
         return $remark;
     }
@@ -214,7 +243,7 @@ class ReplyController extends Controller{
         $url = $app->qrcode->url($result['ticket']);
         $content = file_get_contents($url); // 得到二进制图片内容
         // 临时文件
-        $uploadFileName = '/images/'.date('Ymd').'/'.md5(time()).'.jpg';
+        $uploadFileName = '/images/'.date('Ymd').'/'.md5($keyword).'.jpg';
         Storage::disk('public')->put($uploadFileName, $content);
         return $uploadFileName;
     }
@@ -232,6 +261,10 @@ class ReplyController extends Controller{
                         return error(1002,'图片素材上传失败');
                     Reply::where(['id'=>$data['id']])->update(['rule_id'=>$data['rule_id'],'type'=>$data['type'],'content'=>$data['content'],'media_id'=>$media_id]);
                     break;
+                case 3:
+                    Reply::where(['id'=>$data['id']])->update(['rule_id'=>$data['rule_id'],'type'=>$data['type'],'content'=>$data['content'],'media_id'=>$data['content']]);
+                    break;
+
             }
         }else{
             switch($data['type']){
@@ -243,6 +276,9 @@ class ReplyController extends Controller{
                     if($media_id === false)
                         return error(1002,'图片素材上传失败');
                     Reply::create(['rule_id'=>$data['rule_id'],'type'=>$data['type'],'content'=>$data['content'],'media_id'=>$media_id]);
+                    break;
+                case 3:
+                    Reply::create(['rule_id'=>$data['rule_id'],'type'=>$data['type'],'content'=>$data['content'],'media_id'=>$data['content']]);
                     break;
             }
         }
