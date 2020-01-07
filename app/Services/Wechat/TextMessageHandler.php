@@ -40,7 +40,7 @@ class TextMessageHandler implements  EventHandlerInterface
                     }elseif($value->type == 2){
                         $items[] =  new Image($value->media_id);
                     }elseif($value->type == 3){
-                        $items[] = new Media($value->media_id);
+                        $items[] = new Media($value->media_id,'mpnews');
                     }
                 }
                 if(!empty($items)){
