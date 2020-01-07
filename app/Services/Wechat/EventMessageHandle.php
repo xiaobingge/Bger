@@ -40,20 +40,22 @@ class EventMessageHandler implements  EventHandlerInterface
                         }elseif($value->type == 2){
                             $items[] =  new Image($value->media_id);
                         }elseif($value->type == 3){
-                            $items[]  = new Media($value->media_id,'mpnews');
+                            $items[]  = new Media($value->media_id, 'mpnews' );
                         }
                     }
                     if(!empty($items)){
+                        $config = config('wechat.official_account.default');
+                        $app = Factory::officialAccount($config);
                         if($rule->reply_mode == 1){ //全部回复
-                            $config = config('wechat.official_account.default');
-                            $app = Factory::officialAccount($config);
                             foreach($items as $msg ){
                                 $app->customer_service->message($msg)->to($this->message['FromUserName'])->send();
                                 sleep(1);
                             }
                         }else{   //随机回复一条
                             $mod = array_rand($items);
-                            return $items[$mod];
+                            $app->customer_service->message($items[$mod])->to($this->message['FromUserName'])->send();
+                            //素材消息不支持被动回复 走客服接口
+                            //return $items[$mod];
                         }
 
                     }

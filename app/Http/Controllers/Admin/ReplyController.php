@@ -177,9 +177,9 @@ class ReplyController extends Controller{
             if($type == 1){
                 if($keyword != $rule->keyword){
                     $qr_code = $this->createQrCode($keyword);
-                    Rules::where(['id'=>$id])->update(['name'=>$name,'keyword'=>$keyword,'qr_code'=>$qr_code]);
+                    Rules::where(['id'=>$id])->update(['name'=>$name,'keyword'=>$keyword,'qr_code'=>$qr_code,'reply_mode'=>$reply_mode]);
                 }else{
-                    Rules::where(['id'=>$id])->update(['name'=>$name]);
+                    Rules::where(['id'=>$id])->update(['name'=>$name,'reply_mode'=>$reply_mode]);
                 }
             }else{
                 Rules::where(['id'=>$id])->update(['name'=>$name,'keyword'=>$keyword,'match'=>$match,'reply_mode'=>$reply_mode]);
