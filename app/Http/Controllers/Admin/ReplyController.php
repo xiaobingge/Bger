@@ -208,7 +208,6 @@ class ReplyController extends Controller{
                 $b += 1;
             if($v['type'] == 3)
                 $c += 1;
-
         }
         $remark = '';
         if($a > 0)
@@ -233,16 +232,16 @@ class ReplyController extends Controller{
     }
 
     //创建二维码
-    private function createQrCode($keyword,$type=0)
+    private function createQrCode($keyword,$type=0,$day=0)
     {
         $app = Factory::officialAccount(config('wechat.official_account.default'));
-        if($type == 0)
-            $result = $app->qrcode->temporary($keyword, 6 * 24 * 3600);
+        if($type == 1 && $day > 0 && $day <=30 )
+            $result = $app->qrcode->temporary($keyword, $day * 24 * 3600);
         else
             $result = $app->qrcode->forever($keyword);
         $url = $app->qrcode->url($result['ticket']);
         $content = file_get_contents($url); // 得到二进制图片内容
-        // 临时文件
+        //文件地址
         $uploadFileName = '/images/'.date('Ymd').'/'.md5($keyword).'.jpg';
         Storage::disk('public')->put($uploadFileName, $content);
         return $uploadFileName;
@@ -284,20 +283,6 @@ class ReplyController extends Controller{
         }
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

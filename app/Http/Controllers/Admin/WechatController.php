@@ -66,11 +66,18 @@ class WechatController extends Controller{
     }
 
     //获取图文永久素材最新100条
-    public function selectMaterial()
+    public function selectMaterial(Request $request)
     {
+        $reply = $request->input('reply');
         $list = News::limit(100)->orderBy('id','desc')->get();
         foreach($list as $k=>$v){
-            $list[$k]['content'] = \GuzzleHttp\json_decode($v['content'],true);
+            $content = \GuzzleHttp\json_decode($v['content'],true);
+            //发送图文消息（点击跳转到图文消息页面） 图文消息条数限制在1条以内
+            if($reply == 1 && count($content['news_item']) > 1) {
+                unset($list[$k]);
+                continue;
+            }
+            $list[$k]['content'] = $content;
         }
         return success($list);
     }
