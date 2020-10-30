@@ -7,9 +7,103 @@ use App\Models\Menus;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 
+/**
+ * @OA\Info(
+ *     version="1.0",
+ *     title="dbger 项目接口文档",
+ *     @OA\Contact(
+ *         name="小兵哥",
+ *         url="http://www.dbger.com",
+ *         email="676826479@qq.com"
+ *     )
+ * ),
+ * @OA\Server(
+ *      url=L5_SWAGGER_CONST_HOST
+ * ),
+ * @OA\Server(
+ *      url=L5_SWAGGER_CONST_HOST_API
+ * ),
+ * @OA\SecurityScheme(
+ *     type="apiKey",
+ *     description="Use a global client_id / client_secret and your email / password combo to obtain a token",
+ *     name="api_key_security",
+ *     in="header",
+ *     scheme="http",
+ *     securityScheme="api_key_security",
+ *     @OA\Flow(
+ *         flow="password",
+ *         authorizationUrl="/oauth/authorize",
+ *         tokenUrl="/oauth/token",
+ *         refreshUrl="/oauth/token/refresh",
+ *         scopes={}
+ *     )
+ * )
+ */
+
 class MenuController extends Controller
 {
-    //菜单列表
+
+    /**
+     * @OA\Get(
+     *     path="/menu/index",
+     *     operationId="Menu",
+     *     tags={"菜单管理"},
+     *     summary="菜单列表",
+     *     description="返回菜单列表信息",
+     *     @OA\Parameter(
+     *         name="pid",
+     *         description="父级ID",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         description="页数",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit",
+     *         description="每页显示限制",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort",
+     *         description="id排序 +id 正序 -id 倒序",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="menu_name",
+     *         description="菜单名称",
+     *         required=false,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="success"
+     *     ),
+     *     security={
+     *         {"api_key_security": {}},
+     *     }
+     * )
+     */
     public function index(Request $request)
     {
         $pid = $request->input('pid');

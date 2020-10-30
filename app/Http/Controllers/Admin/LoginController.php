@@ -11,6 +11,38 @@ use Illuminate\Support\Facades\Hash;
 class LoginController extends Controller
 {
 
+    /**
+     * @OA\Post(
+     *     path="/admin/loginCenter",
+     *     operationId="loginCenter",
+     *     tags={"登录接口"},
+     *     summary="登录操作",
+     *     description="返回登录信息",
+     *     @OA\Parameter(
+     *         name="username",
+     *         description="用户名",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="password",
+     *         description="登录密码",
+     *         required=true,
+     *         in="query",
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="success"
+     *     ),
+     * )
+     */
+
     //登录接口处理
     public function login(Request $request,OauthService $oauthService){
 
@@ -30,7 +62,9 @@ class LoginController extends Controller
         if(!Hash::check($password, $user->password))
             return error(1003,'密码错误');
 
-        $data = $oauthService->getOauthToken(config('services.admins.appid'),config('services.admins.secret'),$request->input('username'),$request->input('password'),$request->input('provider'));
+        $provider = !empty($request->input('provider')) ? $request->input('provider') : "admins";
+
+        $data = $oauthService->getOauthToken(config('services.admins.appid'),config('services.admins.secret'),$request->input('username'),$request->input('password'),$provider);
         if($data !== false)
             return success($data);
         else

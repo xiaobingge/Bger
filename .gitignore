@@ -11,3 +11,4 @@ npm-debug.log
 yarn-error.log
 .phpunit.result.cache
 /.env
+/storage/api-docs/api-docs.json
