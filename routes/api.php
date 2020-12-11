@@ -17,3 +17,13 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::group(['prefix' => '/v1'], function () {
+    Route::post('/user/login', 'WechatController@weappLogin');
+    Route::get('/live/tags', 'Api\CommunityController@getTags');
+    Route::get('/live/getCommunity', 'Api\CommunityController@getCommunityByLocation');
+    Route::get('/live/getCommunityList', 'Api\CommunityController@getCommunityList');
+    Route::get('/live/getContact','Api\CommunityController@getContact');
+});
+

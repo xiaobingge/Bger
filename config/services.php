@@ -39,6 +39,11 @@ return [
         'appid' => env('CLIENT_ID'),
         'secret' => env('CLIENT_SECRET'),
         'callback' => ''
+    ],
+    'users' => [
+        'appid' => env('CLIENT_ID_TWO'),
+        'secret' => env('CLIENT_SECRET_TWO'),
+        'callback' => ''
     ]
 
 ];
