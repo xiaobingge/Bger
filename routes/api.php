@@ -25,5 +25,11 @@ Route::group(['prefix' => '/v1'], function () {
     Route::get('/live/getCommunity', 'Api\CommunityController@getCommunityByLocation');
     Route::get('/live/getCommunityList', 'Api\CommunityController@getCommunityList');
     Route::get('/live/getContact','Api\CommunityController@getContact');
+
+    Route::group(['middleware' => ['cors', 'multiauth:api']], function (){
+
+             Route::any('/live/addContact', 'Api\CommunityController@addContact');
+    });
+
 });
 

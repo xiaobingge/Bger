@@ -211,9 +211,9 @@ if (!function_exists('getSql')) {
  */
 function returnSquarePoint($lng, $lat,$distance = 1){
 
-    $dlng =  2 * asin(sin($distance / (2 * env('EARTH_RADIUS'))) / cos(deg2rad($lat)));
+    $dlng =  2 * asin(sin($distance / (2 * 6371)) / cos(deg2rad($lat)));
     $dlng = rad2deg($dlng);
-    $dlat = $distance/env('EARTH_RADIUS');
+    $dlat = $distance/6371;
     $dlat = rad2deg($dlat);
     return array(
         'left-top'=>array('lat'=>$lat + $dlat,'lng'=>$lng-$dlng),

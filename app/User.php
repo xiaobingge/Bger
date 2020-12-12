@@ -4,10 +4,11 @@ namespace App;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use SMartins\PassportMultiauth\HasMultiAuthApiTokens;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable , HasMultiAuthApiTokens;
 
     /**
      * The attributes that are mass assignable.
