@@ -20,7 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 
 Route::group(['prefix' => '/v1'], function () {
-    Route::post('/user/login', 'WechatController@weappLogin');
+    Route::post('/user/login', 'WeChatController@weappLogin');
     Route::get('/live/tags', 'Api\CommunityController@getTags');
     Route::get('/live/getCommunity', 'Api\CommunityController@getCommunityByLocation');
     Route::get('/live/getCommunityList', 'Api\CommunityController@getCommunityList');
